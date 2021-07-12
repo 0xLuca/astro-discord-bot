@@ -1,1 +1,1 @@
-"# astro-discord-bot" 
+# astro-discord-bot
