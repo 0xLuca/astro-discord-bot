@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'at.zieserl.astrodiscordbot'
+version '1.0'
+
+repositories {
+    mavenCentral() // for transitive dependencies
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+}
+
+dependencies {
+    implementation('net.dv8tion:JDA:4.3.0_296')
+}
