@@ -3,7 +3,7 @@ package at.zieserl.astrodiscordbot.config;
 import java.io.*;
 import java.util.Properties;
 
-public class PropertiesBotConfig implements BotConfig {
+public final class PropertiesBotConfig implements BotConfig {
     private final Properties properties;
 
     private PropertiesBotConfig(Properties properties) {
