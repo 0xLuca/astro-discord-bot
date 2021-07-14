@@ -1,7 +1,12 @@
+# Runtime files
+config.properties
+run/
+
 # Directories
 .gradle/
 .idea/
 build/
+out/
 
 # Avoid ignoring Gradle wrapper jar file
 !gradle-wrapper.jar
