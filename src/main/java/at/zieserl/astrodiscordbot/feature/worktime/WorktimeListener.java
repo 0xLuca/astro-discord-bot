@@ -38,7 +38,7 @@ public final class WorktimeListener extends ListenerAdapter {
         if (member.equals(event.getGuild().getSelfMember())) {
             return;
         }
-        lastSessions.put(member.getIdLong(), System.currentTimeMillis());
+        lastSessions.put(member.getUser().getIdLong(), System.currentTimeMillis());
         Roles.removeRole(member, Roles.AUSSER_DIENST_ID);
 
         final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
@@ -74,7 +74,7 @@ public final class WorktimeListener extends ListenerAdapter {
 
         final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
         final EmbedBuilder builder = new EmbedBuilder();
-        final long sessionStartTime = lastSessions.getOrDefault(member.getIdLong(), 0L);
+        final long sessionStartTime = lastSessions.getOrDefault(member.getUser().getIdLong(), 0L);
         final long sessionTime = System.currentTimeMillis() - sessionStartTime;
         final long seconds = sessionTime / 1000;
         final String formattedSessionTime =
