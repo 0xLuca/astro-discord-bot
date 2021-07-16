@@ -65,13 +65,9 @@ public class InfoListener extends ListenerAdapter {
                 ).queue();
             });
             if (!optionalEmployee.isPresent()) {
-                event.reply("Dieser User wurde nicht in der Datenbank gefunden!");
+                event.reply("Dieser User wurde nicht in der Datenbank gefunden!").queue();
             }
         });
-
-        /*event.reply("Informationen zu " + member.getEffectiveName() + " werden geladen...").queue(interactionHook -> {
-
-        });*/
     }
 
     @Override
