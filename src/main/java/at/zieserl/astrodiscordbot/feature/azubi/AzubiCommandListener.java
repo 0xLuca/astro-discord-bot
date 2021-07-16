@@ -5,10 +5,15 @@ import at.zieserl.astrodiscordbot.constant.Channels;
 import at.zieserl.astrodiscordbot.constant.Roles;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public final class AzubiCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
@@ -19,7 +24,7 @@ public final class AzubiCommandListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
-        if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event.getTextChannel())) {
+        if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (!event.getName().equalsIgnoreCase("azubi")) {
@@ -32,8 +37,8 @@ public final class AzubiCommandListener extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event.getTextChannel())) {
+    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+        if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (!event.getMessage().getContentRaw().trim().equalsIgnoreCase("!azubi")) {
@@ -44,7 +49,7 @@ public final class AzubiCommandListener extends ListenerAdapter {
             return;
         }
         grantAzubiRoles(member);
-        event.getTextChannel().sendMessage(discordBot.getMessageStore().provide("azubi-command-success")).queue();
+        event.getChannel().sendMessage(discordBot.getMessageStore().provide("azubi-command-success")).queue();
     }
 
     private void grantAzubiRoles(Member member) {
@@ -57,8 +62,13 @@ public final class AzubiCommandListener extends ListenerAdapter {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean shouldHandleEvent(TextChannel channel) {
-        return channel.getId().equalsIgnoreCase(Channels.AZUBI_COMMAND_CHANNEL_ID);
+    private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(Channels.AZUBI_COMMAND_CHANNEL_ID);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean shouldHandleEvent(GenericGuildMessageEvent event) {
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(Channels.AZUBI_COMMAND_CHANNEL_ID);
     }
 
     public static AzubiCommandListener forBot(DiscordBot bot) {

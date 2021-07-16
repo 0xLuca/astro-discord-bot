@@ -24,8 +24,8 @@ public final class GreetListener extends ListenerAdapter {
             return;
         }
         final TextChannel channel = event.getGuild().getTextChannelById(Channels.GREET_CHANNEL_ID);
-
         final EmbedBuilder builder = new EmbedBuilder();
+
         builder.setTitle(discordBot.getMessageStore().provide("welcome-title"));
         builder.setColor(Color.GREEN);
 
