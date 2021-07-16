@@ -22,27 +22,57 @@ public final class InformationGrabber {
     }
 
     public void reloadConstantsCache() {
-        connection.executeQuery("SELECT id, name FROM rank").ifPresent(ranksResultSet -> {
+        connection.executeQuery("SELECT id, discord_id, name FROM rank").ifPresent(ranksResultSet -> {
             ranks.clear();
             try {
                 while (ranksResultSet.next()) {
-                    ranks.put(ranksResultSet.getInt("id"), new Rank(ranksResultSet.getString("name")));
+                    int rankId = ranksResultSet.getInt("id");
+                    ranks.put(rankId,
+                            new Rank(
+                                    rankId,
+                                    ranksResultSet.getLong("discord_id"),
+                                    ranksResultSet.getString("name")
+                            )
+                    );
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
 
-        connection.executeQuery("SELECT id, name FROM education").ifPresent(educationsResultSet -> {
+        connection.executeQuery("SELECT id, discord_id, name FROM education").ifPresent(educationsResultSet -> {
             educations.clear();
             try {
                 while (educationsResultSet.next()) {
-                    educations.put(educationsResultSet.getInt("id"), new Education(educationsResultSet.getString("name")));
+                    int educationId = educationsResultSet.getInt("id");
+                    educations.put(educationId,
+                            new Education(
+                                    educationId,
+                                    educationsResultSet.getLong("discord_id"),
+                                    educationsResultSet.getString("name")
+                            )
+                    );
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    public Rank getHighestRank() {
+        return ranks.values().stream().filter(rank -> rank.getId() == 1).findFirst().orElseThrow(() -> new RuntimeException("Could not get highest rank by id 1!"));
+    }
+
+    public Rank getLowestRank() {
+        return getRankById(ranks.values().stream().mapToInt(Rank::getId).max().orElseThrow(() -> new RuntimeException("Could not find highest rank!")));
+    }
+
+    public Rank getNextHigherRank(Rank rank) {
+        return getRankById(ranks.values().stream().mapToInt(Rank::getId).filter(id -> id < rank.getId()).max().orElseThrow(() -> new RuntimeException("Could not find higher rank!")));
+    }
+
+    public Rank getNextLowerRank(Rank rank) {
+        return getRankById(ranks.values().stream().mapToInt(Rank::getId).filter(id -> id > rank.getId()).min().orElseThrow(() -> new RuntimeException("Could not find lower rank!")));
     }
 
     public Rank getRankById(int rankId) {
@@ -70,32 +100,28 @@ public final class InformationGrabber {
 
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(String discordId) {
         Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
-        if (optionalEmployeeResult.isPresent()) {
-            return CompletableFuture.supplyAsync(() -> {
-                ResultSet employeeResult = optionalEmployeeResult.get();
-                Employee employee;
-                try {
-                    if (employeeResult.next()) {
-                        int serviceNumber = employeeResult.getInt("service_number");
-                        employee = new Employee(
-                                serviceNumber,
-                                employeeResult.getString("name"),
-                                getRankById(employeeResult.getInt("rank_id")),
-                                employeeResult.getInt("warnings"),
-                                employeeResult.getInt("worktime"),
-                                getEducationsForEmployee(serviceNumber)
-                        );
-                    } else {
-                        throw new RuntimeException("Employee result set had no values in it!");
-                    }
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
+        return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
+            Employee employee;
+            try {
+                if (resultSet.next()) {
+                    int serviceNumber = resultSet.getInt("service_number");
+                    employee = new Employee(
+                            serviceNumber,
+                            discordId,
+                            resultSet.getString("name"),
+                            getRankById(resultSet.getInt("rank_id")),
+                            resultSet.getInt("warnings"),
+                            resultSet.getInt("worktime"),
+                            getEducationsForEmployee(serviceNumber)
+                    );
+                } else {
+                    throw new RuntimeException("Employee result set had no values in it!");
                 }
-                return Optional.of(employee);
-            }, executor);
-        } else {
-            return CompletableFuture.completedFuture(Optional.empty());
-        }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+            return Optional.of(employee);
+        }, executor)).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(long discordId) {
