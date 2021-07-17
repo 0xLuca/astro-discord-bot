@@ -19,11 +19,13 @@ import java.util.Map;
 public final class WorktimeListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String reactionEmote;
+    private final String outOfServiceRoleId;
     private final Map<Long, Long> lastSessions = new HashMap<>();
 
     private WorktimeListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.reactionEmote = discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji");
+        this.outOfServiceRoleId = discordBot.getBotConfig().retrieveValue("out-of-service-role");
     }
 
     @Override
@@ -39,7 +41,7 @@ public final class WorktimeListener extends ListenerAdapter {
             return;
         }
         lastSessions.put(member.getUser().getIdLong(), System.currentTimeMillis());
-        Roles.removeRole(member, Roles.AUSSER_DIENST_ID);
+        Roles.removeRole(member, outOfServiceRoleId);
 
         final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
         final EmbedBuilder builder = new EmbedBuilder();
@@ -70,7 +72,7 @@ public final class WorktimeListener extends ListenerAdapter {
         if (member.equals(event.getGuild().getSelfMember())) {
             return;
         }
-        Roles.grantRole(member, Roles.AUSSER_DIENST_ID);
+        Roles.grantRole(member, outOfServiceRoleId);
 
         final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
         final EmbedBuilder builder = new EmbedBuilder();

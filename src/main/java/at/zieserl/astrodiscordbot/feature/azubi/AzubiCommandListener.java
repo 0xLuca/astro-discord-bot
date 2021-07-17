@@ -4,22 +4,27 @@ import at.zieserl.astrodiscordbot.bot.DiscordBot;
 import at.zieserl.astrodiscordbot.constant.Channels;
 import at.zieserl.astrodiscordbot.constant.Roles;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class AzubiCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
+    private final String firstRankCommandName;
+    private final List<String> firstRankCommandRoleIds;
 
     private AzubiCommandListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
+        this.firstRankCommandName = discordBot.getBotConfig().retrieveValue("first-rank-command-name");
+        this.firstRankCommandRoleIds = Arrays.asList(retrieveFirstRankCommandRoles(discordBot));
     }
 
     @Override
@@ -27,7 +32,7 @@ public final class AzubiCommandListener extends ListenerAdapter {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
-        if (!event.getName().equalsIgnoreCase("azubi")) {
+        if (!event.getName().equalsIgnoreCase(firstRankCommandName)) {
             return;
         }
         final Member member = event.getMember();
@@ -41,7 +46,7 @@ public final class AzubiCommandListener extends ListenerAdapter {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
-        if (!event.getMessage().getContentRaw().trim().equalsIgnoreCase("!azubi")) {
+        if (!event.getMessage().getContentRaw().trim().equalsIgnoreCase("!" + firstRankCommandName)) {
             return;
         }
         Member member = event.getMember();
@@ -52,13 +57,12 @@ public final class AzubiCommandListener extends ListenerAdapter {
         event.getChannel().sendMessage(discordBot.getMessageStore().provide("azubi-command-success")).queue();
     }
 
+    private String[] retrieveFirstRankCommandRoles(DiscordBot discordBot) {
+        return Arrays.stream(discordBot.getBotConfig().retrieveValue("first-rank-command-roles").split(",")).map(String::trim).toArray(String[]::new);
+    }
+
     private void grantAzubiRoles(Member member) {
-        Roles.grantRole(member, Roles.AUSSER_DIENST_ID);
-        Roles.grantRole(member, Roles.AZUBI_ID);
-        Roles.grantRole(member, Roles.ABTEILUNGEN_ID);
-        Roles.grantRole(member, Roles.RETTUNGSMEDIZIN_ID);
-        Roles.grantRole(member, Roles.SONSTIGES_ID);
-        Roles.grantRole(member, Roles.LSMD_ID);
+        firstRankCommandRoleIds.forEach(roleId -> Roles.grantRole(member, roleId));
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
