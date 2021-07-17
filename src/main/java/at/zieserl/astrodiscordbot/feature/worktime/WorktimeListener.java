@@ -1,8 +1,7 @@
 package at.zieserl.astrodiscordbot.feature.worktime;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
-import at.zieserl.astrodiscordbot.constant.Roles;
+import at.zieserl.astrodiscordbot.constant.RoleController;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -20,12 +19,16 @@ public final class WorktimeListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String reactionEmote;
     private final String outOfServiceRoleId;
+    private final String dienstmeldungChannelId;
+    private final String adminLogsChannelId;
     private final Map<Long, Long> lastSessions = new HashMap<>();
 
     private WorktimeListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.reactionEmote = discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji");
         this.outOfServiceRoleId = discordBot.getBotConfig().retrieveValue("out-of-service-role");
+        this.dienstmeldungChannelId = discordBot.getBotConfig().retrieveValue("dienstmeldung-channel");
+        this.adminLogsChannelId = discordBot.getBotConfig().retrieveValue("admin-logs-channel");
     }
 
     @Override
@@ -41,9 +44,9 @@ public final class WorktimeListener extends ListenerAdapter {
             return;
         }
         lastSessions.put(member.getUser().getIdLong(), System.currentTimeMillis());
-        Roles.removeRole(member, outOfServiceRoleId);
+        RoleController.removeRole(member, outOfServiceRoleId);
 
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(adminLogsChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle(discordBot.getMessageStore().provide("now-at-work-title"));
@@ -72,9 +75,9 @@ public final class WorktimeListener extends ListenerAdapter {
         if (member.equals(event.getGuild().getSelfMember())) {
             return;
         }
-        Roles.grantRole(member, outOfServiceRoleId);
+        RoleController.grantRole(member, outOfServiceRoleId);
 
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.LOGS_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(adminLogsChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
         final long sessionStartTime = lastSessions.getOrDefault(member.getUser().getIdLong(), 0L);
         final long sessionTime = System.currentTimeMillis() - sessionStartTime;
@@ -100,7 +103,7 @@ public final class WorktimeListener extends ListenerAdapter {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(GenericMessageEvent event) {
-        return event.getTextChannel().getId().equals(Channels.DIENSTMELDUNGEN_CHANNEL_ID);
+        return event.getTextChannel().getId().equals(dienstmeldungChannelId);
     }
 
     public static WorktimeListener forBot(DiscordBot discordBot) {

@@ -1,11 +1,9 @@
 package at.zieserl.astrodiscordbot.feature.vacation;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
 import at.zieserl.astrodiscordbot.constant.Strings;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
@@ -20,9 +18,11 @@ import java.time.Instant;
 
 public final class VacationListener extends ListenerAdapter {
     private final DiscordBot discordBot;
+    private final String vacationChannelId;
 
     private VacationListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
+        this.vacationChannelId = discordBot.getBotConfig().retrieveValue("vacation-channel");
     }
 
     @Override
@@ -31,7 +31,7 @@ public final class VacationListener extends ListenerAdapter {
             return;
         }
 
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.ABMELDEN_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(vacationChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
 
         String name;
@@ -60,7 +60,7 @@ public final class VacationListener extends ListenerAdapter {
             return;
         }
 
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.ABMELDEN_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(vacationChannelId);
         assert channel != null : "Could not find Abmelden channel";
         channel.retrieveMessageById(event.getMessageId()).queue(message -> message.clearReactions().queue(unused -> {
             if (event.getReactionEmote().isEmoji()) {
@@ -73,7 +73,7 @@ public final class VacationListener extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReactionRemove(@NotNull GuildMessageReactionRemoveEvent event) {
-        if (!discordBot.shouldHandleEvent(event) || !event.getChannel().getId().equals(Channels.ABMELDEN_CHANNEL_ID)) {
+        if (!discordBot.shouldHandleEvent(event) || !event.getChannel().getId().equals(vacationChannelId)) {
             return;
         }
         Member member = event.getMember();
@@ -82,11 +82,11 @@ public final class VacationListener extends ListenerAdapter {
     }
 
     private boolean shouldHandleEvent(GuildMessageReceivedEvent event) {
-        return event.getChannel().getId().equals(Channels.ABMELDEN_CHANNEL_ID) && !event.getGuild().getSelfMember().equals(event.getMember());
+        return event.getChannel().getId().equals(vacationChannelId) && !event.getGuild().getSelfMember().equals(event.getMember());
     }
 
     private boolean shouldHandleEvent(GenericGuildMessageReactionEvent event) {
-        return event.getChannel().getId().equals(Channels.ABMELDEN_CHANNEL_ID) && !event.getGuild().getSelfMember().equals(event.getMember());
+        return event.getChannel().getId().equals(vacationChannelId) && !event.getGuild().getSelfMember().equals(event.getMember());
     }
 
     public static VacationListener forBot(DiscordBot discordBot) {

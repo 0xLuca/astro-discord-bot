@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
-public final class Roles {
+public final class RoleController {
     public static void grantRole(Member member, String roleId) {
         Guild guild = member.getGuild();
         Role role = guild.getRoleById(roleId);

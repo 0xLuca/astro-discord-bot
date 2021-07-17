@@ -1,8 +1,7 @@
 package at.zieserl.astrodiscordbot.feature.azubi;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
-import at.zieserl.astrodiscordbot.constant.Roles;
+import at.zieserl.astrodiscordbot.constant.RoleController;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
@@ -14,17 +13,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public final class AzubiCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String firstRankCommandName;
     private final List<String> firstRankCommandRoleIds;
+    private final String firstRankCommandChannelId;
 
     private AzubiCommandListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.firstRankCommandName = discordBot.getBotConfig().retrieveValue("first-rank-command-name");
         this.firstRankCommandRoleIds = Arrays.asList(retrieveFirstRankCommandRoles(discordBot));
+        this.firstRankCommandChannelId = discordBot.getBotConfig().retrieveValue("first-rank-command-channel");
     }
 
     @Override
@@ -62,17 +62,17 @@ public final class AzubiCommandListener extends ListenerAdapter {
     }
 
     private void grantAzubiRoles(Member member) {
-        firstRankCommandRoleIds.forEach(roleId -> Roles.grantRole(member, roleId));
+        firstRankCommandRoleIds.forEach(roleId -> RoleController.grantRole(member, roleId));
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
-        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(Channels.AZUBI_COMMAND_CHANNEL_ID);
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(GenericGuildMessageEvent event) {
-        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(Channels.AZUBI_COMMAND_CHANNEL_ID);
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
     public static AzubiCommandListener forBot(DiscordBot bot) {

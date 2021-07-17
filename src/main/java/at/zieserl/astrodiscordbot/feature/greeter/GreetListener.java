@@ -1,7 +1,6 @@
 package at.zieserl.astrodiscordbot.feature.greeter;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
@@ -13,9 +12,11 @@ import java.awt.*;
 
 public final class GreetListener extends ListenerAdapter {
     private final DiscordBot discordBot;
+    private final String greetChannelId;
 
     private GreetListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
+        this.greetChannelId = discordBot.getBotConfig().retrieveValue("greet-channel");
     }
 
     @Override
@@ -23,7 +24,7 @@ public final class GreetListener extends ListenerAdapter {
         if (!discordBot.shouldHandleEvent(event)) {
             return;
         }
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.GREET_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(greetChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle(discordBot.getMessageStore().provide("welcome-title"));
@@ -46,7 +47,7 @@ public final class GreetListener extends ListenerAdapter {
         if (!discordBot.shouldHandleEvent(event)) {
             return;
         }
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.GREET_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(greetChannelId);
 
         final EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(discordBot.getMessageStore().provide("leave-title"));

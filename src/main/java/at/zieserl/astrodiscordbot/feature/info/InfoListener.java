@@ -1,8 +1,7 @@
 package at.zieserl.astrodiscordbot.feature.info;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
-import at.zieserl.astrodiscordbot.constant.Roles;
+import at.zieserl.astrodiscordbot.constant.RoleController;
 import at.zieserl.astrodiscordbot.employee.Education;
 import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
@@ -29,9 +28,11 @@ public class InfoListener extends ListenerAdapter {
         put("demote", InfoListener.this::performDemote);
     }};
     private final Map<String, Employee> employeeCache = new HashMap<>();
+    private final String adminCommandsChannelId;
 
     private InfoListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
+        this.adminCommandsChannelId = discordBot.getBotConfig().retrieveValue("admin-commands-channel");
     }
 
     @Override
@@ -101,9 +102,9 @@ public class InfoListener extends ListenerAdapter {
         }
 
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
-        Roles.removeRole(member, String.valueOf(currentRank.getDiscordId()));
+        RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         Rank newRank = discordBot.getInformationGrabber().getNextHigherRank(currentRank);
-        Roles.grantRole(member, String.valueOf(newRank.getDiscordId()));
+        RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
         event.reply(String.format("%s wurde erfolgreich zu %s befördert!", member.getEffectiveName(), newRank.getName())).queue();
     }
@@ -117,9 +118,9 @@ public class InfoListener extends ListenerAdapter {
         }
 
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
-        Roles.removeRole(member, String.valueOf(currentRank.getDiscordId()));
+        RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         Rank newRank = discordBot.getInformationGrabber().getNextLowerRank(currentRank);
-        Roles.grantRole(member, String.valueOf(newRank.getDiscordId()));
+        RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
         event.reply(String.format("%s wurde erfolgreich zu %s degradiert!", member.getEffectiveName(), newRank.getName())).queue();
     }
@@ -132,7 +133,7 @@ public class InfoListener extends ListenerAdapter {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
-        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(Channels.VERWALTUNG_COMMANDS_CHANNEL_ID);
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(adminCommandsChannelId);
     }
 
     public static InfoListener forBot(DiscordBot discordBot) {

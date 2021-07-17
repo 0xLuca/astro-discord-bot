@@ -1,7 +1,6 @@
 package at.zieserl.astrodiscordbot.feature.setup;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
-import at.zieserl.astrodiscordbot.constant.Channels;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
@@ -13,9 +12,11 @@ import java.awt.*;
 
 public final class SetupCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
+    private final String dienstmeldungenChannelId;
 
     private SetupCommandListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
+        this.dienstmeldungenChannelId = discordBot.getBotConfig().retrieveValue("dienstmeldung-channel");
     }
 
     @Override
@@ -26,7 +27,7 @@ public final class SetupCommandListener extends ListenerAdapter {
         if (!event.getMessage().getContentRaw().equalsIgnoreCase("!setup")) {
             return;
         }
-        final TextChannel channel = event.getGuild().getTextChannelById(Channels.DIENSTMELDUNGEN_CHANNEL_ID);
+        final TextChannel channel = event.getGuild().getTextChannelById(dienstmeldungenChannelId);
 
         final EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(discordBot.getMessageStore().provide("work-info-title"));
@@ -48,7 +49,7 @@ public final class SetupCommandListener extends ListenerAdapter {
     }
 
     private boolean shouldHandleEvent(GenericGuildMessageEvent event) {
-        return event.getChannel().getId().equals(Channels.VERWALTUNG_COMMANDS_CHANNEL_ID);
+        return event.getChannel().getId().equals(dienstmeldungenChannelId);
     }
 
     public static SetupCommandListener forBot(DiscordBot discordBot) {
