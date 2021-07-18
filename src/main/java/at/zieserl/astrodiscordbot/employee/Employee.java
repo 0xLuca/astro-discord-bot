@@ -28,6 +28,10 @@ public final class Employee {
         return serviceNumber;
     }
 
+    public void setServiceNumber(Integer serviceNumber) {
+        this.serviceNumber = serviceNumber;
+    }
+
     public String getDiscordId() {
         return discordId;
     }

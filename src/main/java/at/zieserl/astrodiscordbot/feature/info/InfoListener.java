@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-public class InfoListener extends ListenerAdapter {
+public final class InfoListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final Map<String, BiConsumer<ButtonClickEvent, Employee>> actions = new HashMap<String, BiConsumer<ButtonClickEvent, Employee>>() {{
         put("promote", InfoListener.this::performPromote);
@@ -113,6 +113,7 @@ public class InfoListener extends ListenerAdapter {
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
+        employee.setServiceNumber(newServiceNumber);
         event.reply(String.format("%s wurde erfolgreich zu %s befördert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
@@ -138,6 +139,7 @@ public class InfoListener extends ListenerAdapter {
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
+        employee.setServiceNumber(newServiceNumber);
         event.reply(String.format("%s wurde erfolgreich zu %s degradiert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
