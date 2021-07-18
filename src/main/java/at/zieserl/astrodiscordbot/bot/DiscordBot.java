@@ -47,15 +47,6 @@ public final class DiscordBot {
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
         builder.enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS);
 
-        builder.addEventListeners(GreetListener.forBot(this));
-        builder.addEventListeners(FirstRankCommandListener.forBot(this));
-        builder.addEventListeners(WorktimeListener.forBot(this));
-        builder.addEventListeners(SetupCommandListener.forBot(this));
-        builder.addEventListeners(VacationListener.forBot(this));
-        builder.addEventListeners(InfoListener.forBot(this));
-        builder.addEventListeners(ClearListener.forBot(this));
-        builder.addEventListeners(RegisterListener.forBot(this));
-
         final JDA jda = builder.build();
         try {
             jda.awaitReady();
@@ -79,14 +70,28 @@ public final class DiscordBot {
 
         logController = LogController.forBot(this);
 
+        jda.addEventListener(GreetListener.forBot(this));
+        jda.addEventListener(FirstRankCommandListener.forBot(this));
+        jda.addEventListener(WorktimeListener.forBot(this));
+        jda.addEventListener(SetupCommandListener.forBot(this));
+        jda.addEventListener(VacationListener.forBot(this));
+        jda.addEventListener(InfoListener.forBot(this));
+        jda.addEventListener(ClearListener.forBot(this));
+        jda.addEventListener(RegisterListener.forBot(this));
+
         registerCommands();
         changeNicknameIfNeeded();
     }
 
     private void registerCommands() {
         assert activeGuild != null : "Could not find guild by given guild id";
+
+        /*activeGuild.retrieveCommands().complete().forEach(command -> {
+            System.out.println(command.getName() + " " + command.getDescription());
+        });*/
+
         registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("first-rank-command-name"), getMessageStore().provide("first-rank-command-description"))
-                .addOption(OptionType.STRING, "name", "Dein IC Name"));
+                .addOption(OptionType.STRING, "name", "Dein IC Name", true));
         registerCommand(activeGuild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
         registerCommand(activeGuild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
                 .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));

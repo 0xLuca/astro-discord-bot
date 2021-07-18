@@ -31,6 +31,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         this.firstRankCommandChannelId = discordBot.getBotConfig().retrieveValue("first-rank-command-channel");
         this.firstRankEducations = Arrays.asList(retrieveFirstRankEducationIds(discordBot));
         this.startingRank = discordBot.getInformationGrabber().getRankById(Integer.parseInt(discordBot.getBotConfig().retrieveValue("first-rank-command-rank")));
+        System.out.println(this.startingRank);
     }
 
     @Override
@@ -56,6 +57,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
     private void saveEmployee(Member member, String name) {
         int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
         Employee employee = new Employee(newServiceNumber, member.getId(), name, startingRank, 0, 0, firstRankEducations.toArray(new Education[0]));
+        employee.updateNickname(member);
         discordBot.getLogController().postNewEmployee(employee);
         discordBot.getInformationGrabber().registerEmployeeData(employee);
         discordBot.getInformationGrabber().saveEmployeeEducations(employee);
@@ -76,11 +78,6 @@ public final class FirstRankCommandListener extends ListenerAdapter {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
-        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean shouldHandleEvent(GenericGuildMessageEvent event) {
         return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
