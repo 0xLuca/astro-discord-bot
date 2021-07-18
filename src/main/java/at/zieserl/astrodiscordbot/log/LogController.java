@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 public final class LogController {
-    private static final DateFormat timeStampFormat = new SimpleDateFormat("dd.MM.yyyy hh:mm");
+    private static final DateFormat timeStampFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
     private final DiscordBot discordBot;
     private final Role employeeRole;
     private final TextChannel logsChannel;
@@ -26,20 +26,47 @@ public final class LogController {
         this.logsChannel = discordBot.getActiveGuild().getTextChannelById(discordBot.getBotConfig().retrieveValue("public-logs-channel"));
     }
 
+    public void postNewEmployee(Employee employee) {
+        final EmbedBuilder builder = new EmbedBuilder();
+
+        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
+        builder.setColor(Color.RED);
+
+        builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
+
+        Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+        Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
+        assert member != null && role != null : "Could not find member for employee id / role for rank id!";
+        String message = discordBot.getMessageStore().provide("new-employee-log");
+        message = message.replace("%mention%", member.getAsMention());
+        message = message.replace("%role%", role.getAsMention());
+        message = message.replace("%service-number%", employee.getServiceNumber().toString());
+        builder.addField("Neuer Mitarbeiter", message, false);
+
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        logsChannel.sendMessage(builder.build()).queue();
+    }
+
     public void postRankChange(Employee... employees) {
         if (employees.length == 0) {
             throw new IllegalArgumentException("Need to pass at least one employee to post rank change!");
         }
         final EmbedBuilder builder = new EmbedBuilder();
 
-        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%employee-role%", employeeRole.getAsMention()).replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
+        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
         builder.setColor(Color.RED);
 
+        builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
+
         Arrays.stream(employees).forEach(employee -> {
-            Member member = discordBot.getActiveGuild().getMemberById(employee.getDiscordId());
+            Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
             Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
             assert member != null && role != null : "Could not find member for employee id / role for rank id!";
-            builder.addField("Neuer Dienstgrad", discordBot.getMessageStore().provide("new-rank-log").replace("%mention%", member.getAsMention()).replace("%role%", role.getAsMention()).replace("%service-number%", employee.getServiceNumber().toString()), false);
+            String message = discordBot.getMessageStore().provide("new-rank-log");
+            message = message.replace("%mention%", member.getAsMention());
+            message = message.replace("%role%", role.getAsMention());
+            message = message.replace("%service-number%", employee.getServiceNumber().toString());
+            builder.addField("Neuer Dienstgrad", message, false);
         });
 
         builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());

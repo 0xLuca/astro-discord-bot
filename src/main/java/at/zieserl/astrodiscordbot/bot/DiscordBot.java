@@ -3,7 +3,7 @@ package at.zieserl.astrodiscordbot.bot;
 import at.zieserl.astrodiscordbot.config.BotConfig;
 import at.zieserl.astrodiscordbot.database.InformationGrabber;
 import at.zieserl.astrodiscordbot.database.MysqlConnection;
-import at.zieserl.astrodiscordbot.feature.azubi.AzubiCommandListener;
+import at.zieserl.astrodiscordbot.feature.firstrank.FirstRankCommandListener;
 import at.zieserl.astrodiscordbot.feature.clear.ClearListener;
 import at.zieserl.astrodiscordbot.feature.greeter.GreetListener;
 import at.zieserl.astrodiscordbot.feature.info.InfoListener;
@@ -30,16 +30,15 @@ import java.util.Objects;
 public final class DiscordBot {
     private final MessageStore messageStore;
     private final BotConfig botConfig;
-    private final LogController logController;
     private MysqlConnection databaseConnection;
     private InformationGrabber informationGrabber;
+    private LogController logController;
     private final String guildId;
     private Guild activeGuild;
 
     public DiscordBot(MessageStore messageStore, BotConfig botConfig, String guildId) {
         this.messageStore = messageStore;
         this.botConfig = botConfig;
-        this.logController = LogController.forBot(this);
         this.guildId = guildId;
     }
 
@@ -49,7 +48,7 @@ public final class DiscordBot {
         builder.enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS);
 
         builder.addEventListeners(GreetListener.forBot(this));
-        builder.addEventListeners(AzubiCommandListener.forBot(this));
+        builder.addEventListeners(FirstRankCommandListener.forBot(this));
         builder.addEventListeners(WorktimeListener.forBot(this));
         builder.addEventListeners(SetupCommandListener.forBot(this));
         builder.addEventListeners(VacationListener.forBot(this));
@@ -78,13 +77,15 @@ public final class DiscordBot {
         informationGrabber = InformationGrabber.forConnection(databaseConnection);
         informationGrabber.reloadConstantsCache();
 
+        logController = LogController.forBot(this);
+
         registerCommands();
         changeNicknameIfNeeded();
     }
 
     private void registerCommands() {
         assert activeGuild != null : "Could not find guild by given guild id";
-        registerCommand(activeGuild, new CommandData("azubi", getMessageStore().provide("azubi-command-description")));
+        registerCommand(activeGuild, new CommandData("azubi", getMessageStore().provide("first-rank-command-description")));
         registerCommand(activeGuild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
         registerCommand(activeGuild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
                 .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));

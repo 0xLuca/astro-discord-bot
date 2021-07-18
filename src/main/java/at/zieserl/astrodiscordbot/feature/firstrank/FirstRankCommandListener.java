@@ -1,4 +1,4 @@
-package at.zieserl.astrodiscordbot.feature.azubi;
+package at.zieserl.astrodiscordbot.feature.firstrank;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
 import at.zieserl.astrodiscordbot.constant.RoleController;
@@ -14,13 +14,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public final class AzubiCommandListener extends ListenerAdapter {
+public final class FirstRankCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String firstRankCommandName;
     private final List<String> firstRankCommandRoleIds;
     private final String firstRankCommandChannelId;
 
-    private AzubiCommandListener(DiscordBot discordBot) {
+    private FirstRankCommandListener(DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.firstRankCommandName = discordBot.getBotConfig().retrieveValue("first-rank-command-name");
         this.firstRankCommandRoleIds = Arrays.asList(retrieveFirstRankCommandRoles(discordBot));
@@ -36,9 +36,9 @@ public final class AzubiCommandListener extends ListenerAdapter {
             return;
         }
         final Member member = event.getMember();
-        assert member != null : "Unknown member used azubi command";
-        grantAzubiRoles(member);
-        event.reply(discordBot.getMessageStore().provide("azubi-command-success")).queue();
+        assert member != null : "Unknown member used first rank command";
+        grantFirstRankRoles(member);
+        event.reply(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
     }
 
     @Override
@@ -53,15 +53,15 @@ public final class AzubiCommandListener extends ListenerAdapter {
         if (member == null) {
             return;
         }
-        grantAzubiRoles(member);
-        event.getChannel().sendMessage(discordBot.getMessageStore().provide("azubi-command-success")).queue();
+        grantFirstRankRoles(member);
+        event.getChannel().sendMessage(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
     }
 
     private String[] retrieveFirstRankCommandRoles(DiscordBot discordBot) {
         return Arrays.stream(discordBot.getBotConfig().retrieveValue("first-rank-command-roles").split(",")).map(String::trim).toArray(String[]::new);
     }
 
-    private void grantAzubiRoles(Member member) {
+    private void grantFirstRankRoles(Member member) {
         firstRankCommandRoleIds.forEach(roleId -> RoleController.grantRole(member, roleId));
     }
 
@@ -75,7 +75,7 @@ public final class AzubiCommandListener extends ListenerAdapter {
         return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
-    public static AzubiCommandListener forBot(DiscordBot bot) {
-        return new AzubiCommandListener(bot);
+    public static FirstRankCommandListener forBot(DiscordBot bot) {
+        return new FirstRankCommandListener(bot);
     }
 }
