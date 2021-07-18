@@ -57,7 +57,7 @@ public class InfoListener extends ListenerAdapter {
 
                 builder.setTitle("Informationen zu " + member.getEffectiveName());
                 builder.setColor(Color.BLUE);
-                builder.addField("Dienstnummer", employee.getServiceNumber().toString(), false);
+                builder.addField("Dienstnummer", formatServiceNumber(employee.getServiceNumber()), false);
                 builder.addField("Name", employee.getName(), false);
                 builder.addField("Dienstgrad", employee.getRank().getName(), false);
                 String educations = convertEducationsToString(employee.getEducationList());
@@ -97,32 +97,54 @@ public class InfoListener extends ListenerAdapter {
         int currentRankId = employee.getRank().getId();
         Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
         if (currentRank == discordBot.getInformationGrabber().getHighestRank()) {
-            event.reply("Dieser Mitarbeiter hat bereits den höchsten Rang!").queue();
+            event.reply("Dieser Mitarbeiter hat bereits den höchsten Dienstgrad!").queue();
             return;
         }
 
+        Rank newRank = discordBot.getInformationGrabber().getNextHigherRank(currentRank);
+        if (discordBot.getInformationGrabber().countEmployeesWithRank(newRank) >= newRank.getMaxMembers()) {
+            event.reply("Der neue Dienstgrad hat bereits die maximale Anzahl an Mitarbeitern erreicht!").queue();
+            return;
+        }
+
+        int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
+        String newServiceNumberFormatted = formatServiceNumber(newServiceNumber);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
-        Rank newRank = discordBot.getInformationGrabber().getNextHigherRank(currentRank);
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
-        event.reply(String.format("%s wurde erfolgreich zu %s befördert!", member.getEffectiveName(), newRank.getName())).queue();
+        event.reply(String.format("%s wurde erfolgreich zu %s befördert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
+        employee.updateNickname(member);
+        discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
     private void performDemote(ButtonClickEvent event, Employee employee) {
         int currentRankId = employee.getRank().getId();
         Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
         if (currentRank == discordBot.getInformationGrabber().getLowestRank()) {
-            event.reply("Dieser Mitarbeiter hat bereits den niedrigsten Rang!").queue();
+            event.reply("Dieser Mitarbeiter hat bereits den niedrigsten Dienstgrad!").queue();
             return;
         }
 
+        Rank newRank = discordBot.getInformationGrabber().getNextLowerRank(currentRank);
+        if (discordBot.getInformationGrabber().countEmployeesWithRank(newRank) >= newRank.getMaxMembers()) {
+            event.reply("Der neue Dienstgrad hat bereits die maximale Anzahl an Mitarbeitern erreicht!").queue();
+            return;
+        }
+
+        int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
+        String newServiceNumberFormatted = formatServiceNumber(newServiceNumber);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
-        Rank newRank = discordBot.getInformationGrabber().getNextLowerRank(currentRank);
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
-        event.reply(String.format("%s wurde erfolgreich zu %s degradiert!", member.getEffectiveName(), newRank.getName())).queue();
+        event.reply(String.format("%s wurde erfolgreich zu %s degradiert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
+        employee.updateNickname(member);
+        discordBot.getInformationGrabber().saveEmployeeData(employee);
+    }
+
+    private String formatServiceNumber(int serviceNumber) {
+        return String.format("%02d", serviceNumber);
     }
 
     private String convertEducationsToString(List<Education> educations) {

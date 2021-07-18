@@ -4,13 +4,14 @@ import at.zieserl.astrodiscordbot.config.BotConfig;
 import at.zieserl.astrodiscordbot.database.InformationGrabber;
 import at.zieserl.astrodiscordbot.database.MysqlConnection;
 import at.zieserl.astrodiscordbot.feature.azubi.AzubiCommandListener;
+import at.zieserl.astrodiscordbot.feature.clear.ClearListener;
 import at.zieserl.astrodiscordbot.feature.greeter.GreetListener;
 import at.zieserl.astrodiscordbot.feature.info.InfoListener;
+import at.zieserl.astrodiscordbot.feature.register.RegisterListener;
 import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
 import at.zieserl.astrodiscordbot.feature.vacation.VacationListener;
 import at.zieserl.astrodiscordbot.feature.worktime.WorktimeListener;
 import at.zieserl.astrodiscordbot.i18n.MessageStore;
-import com.mysql.cj.jdbc.MysqlDataSource;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -23,11 +24,6 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import javax.security.auth.login.LoginException;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Objects;
 
 public final class DiscordBot {
@@ -54,6 +50,8 @@ public final class DiscordBot {
         builder.addEventListeners(SetupCommandListener.forBot(this));
         builder.addEventListeners(VacationListener.forBot(this));
         builder.addEventListeners(InfoListener.forBot(this));
+        builder.addEventListeners(ClearListener.forBot(this));
+        builder.addEventListeners(RegisterListener.forBot(this));
 
         final JDA jda = builder.build();
         try {
@@ -82,7 +80,13 @@ public final class DiscordBot {
         Guild guild = jda.getGuildById(guildId);
         assert guild != null : "Could not find guild by given guild id";
         registerCommand(guild, new CommandData("azubi", getMessageStore().provide("azubi-command-description")));
-        registerCommand(guild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab").addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));
+        registerCommand(guild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
+        registerCommand(guild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
+                .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));
+        registerCommand(guild, new CommandData("register", "Registriert eine neue Person in die Datenbank")
+                .addOption(OptionType.USER, "member", "Der Member, der registriert werden soll", true)
+                .addOption(OptionType.STRING, "name", "Der IC Name der Person", true)
+                .addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true));
     }
 
     private void registerCommand(Guild guild, CommandData commandData) {

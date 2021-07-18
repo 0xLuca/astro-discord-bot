@@ -1,5 +1,7 @@
 package at.zieserl.astrodiscordbot.employee;
 
+import net.dv8tion.jda.api.entities.Member;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,5 +62,13 @@ public final class Employee {
 
     public List<Education> getEducationList() {
         return educationList;
+    }
+
+    public void updateNickname(Member member) {
+        member.modifyNickname(String.format("[%s] %s", formatServiceNumber(getServiceNumber()), getName())).queue();
+    }
+
+    private String formatServiceNumber(int serviceNumber) {
+        return String.format("%02d", serviceNumber);
     }
 }

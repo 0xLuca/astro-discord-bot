@@ -84,28 +84,6 @@ public final class MysqlConnection {
         }
     }
 
-    public ResultSet executeQuery(String query, Map<Integer, String> parameters) {
-        if (isConnected()) {
-            try {
-                PreparedStatement statement = connection.prepareStatement(query);
-                if (parameters != null && parameters.size() > 0) {
-                    for (Map.Entry<Integer, String> param : parameters.entrySet()) {
-                        statement.setString(param.getKey(), param.getValue());
-                    }
-                }
-                if (query.toLowerCase().startsWith("update") || query.toLowerCase().startsWith("insert") || query.toLowerCase().startsWith("delete")) {
-                    statement.execute();
-                    return null;
-                } else {
-                    return statement.executeQuery();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        }
-        throw new RuntimeException("Can't execute query when no connection is established!");
-    }
-
     public Optional<ResultSet> executeQuery(String query, String... parameters) {
         if (isConnected()) {
             try {
