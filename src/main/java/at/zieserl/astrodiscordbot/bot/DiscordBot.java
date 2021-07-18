@@ -85,7 +85,8 @@ public final class DiscordBot {
 
     private void registerCommands() {
         assert activeGuild != null : "Could not find guild by given guild id";
-        registerCommand(activeGuild, new CommandData("azubi", getMessageStore().provide("first-rank-command-description")));
+        registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("first-rank-command-name"), getMessageStore().provide("first-rank-command-description"))
+                .addOption(OptionType.STRING, "name", "Dein IC Name"));
         registerCommand(activeGuild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
         registerCommand(activeGuild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
                 .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));
