@@ -115,6 +115,7 @@ public final class InfoListener extends ListenerAdapter {
         employee.setRank(newRank);
         employee.setServiceNumber(newServiceNumber);
         event.reply(String.format("%s wurde erfolgreich zu %s befördert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
+        discordBot.getLogController().postRankChange(employee);
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
@@ -141,6 +142,7 @@ public final class InfoListener extends ListenerAdapter {
         employee.setRank(newRank);
         employee.setServiceNumber(newServiceNumber);
         event.reply(String.format("%s wurde erfolgreich zu %s degradiert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
+        discordBot.getLogController().postRankChange(employee);
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }

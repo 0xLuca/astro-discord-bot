@@ -12,6 +12,7 @@ import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
 import at.zieserl.astrodiscordbot.feature.vacation.VacationListener;
 import at.zieserl.astrodiscordbot.feature.worktime.WorktimeListener;
 import at.zieserl.astrodiscordbot.i18n.MessageStore;
+import at.zieserl.astrodiscordbot.log.LogController;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -29,13 +30,16 @@ import java.util.Objects;
 public final class DiscordBot {
     private final MessageStore messageStore;
     private final BotConfig botConfig;
+    private final LogController logController;
     private MysqlConnection databaseConnection;
     private InformationGrabber informationGrabber;
     private final String guildId;
+    private Guild activeGuild;
 
     public DiscordBot(MessageStore messageStore, BotConfig botConfig, String guildId) {
         this.messageStore = messageStore;
         this.botConfig = botConfig;
+        this.logController = LogController.forBot(this);
         this.guildId = guildId;
     }
 
@@ -61,6 +65,8 @@ public final class DiscordBot {
             return;
         }
 
+        activeGuild = jda.getGuildById(guildId);
+
         databaseConnection = MysqlConnection.establish(
                 botConfig.retrieveValue("host"),
                 botConfig.retrieveValue("port"),
@@ -72,18 +78,17 @@ public final class DiscordBot {
         informationGrabber = InformationGrabber.forConnection(databaseConnection);
         informationGrabber.reloadConstantsCache();
 
-        registerCommands(jda);
-        changeNicknameIfNeeded(jda);
+        registerCommands();
+        changeNicknameIfNeeded();
     }
 
-    private void registerCommands(JDA jda) {
-        Guild guild = jda.getGuildById(guildId);
-        assert guild != null : "Could not find guild by given guild id";
-        registerCommand(guild, new CommandData("azubi", getMessageStore().provide("azubi-command-description")));
-        registerCommand(guild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
-        registerCommand(guild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
+    private void registerCommands() {
+        assert activeGuild != null : "Could not find guild by given guild id";
+        registerCommand(activeGuild, new CommandData("azubi", getMessageStore().provide("azubi-command-description")));
+        registerCommand(activeGuild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
+        registerCommand(activeGuild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
                 .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));
-        registerCommand(guild, new CommandData("register", "Registriert eine neue Person in die Datenbank")
+        registerCommand(activeGuild, new CommandData("register", "Registriert eine neue Person in die Datenbank")
                 .addOption(OptionType.USER, "member", "Der Member, der registriert werden soll", true)
                 .addOption(OptionType.STRING, "name", "Der IC Name der Person", true)
                 .addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true));
@@ -103,8 +108,8 @@ public final class DiscordBot {
         );
     }
 
-    private void changeNicknameIfNeeded(JDA jda) {
-        final Member self = Objects.requireNonNull(jda.getGuildById(guildId)).getSelfMember();
+    private void changeNicknameIfNeeded() {
+        final Member self = activeGuild.getSelfMember();
         final String requiredNickname = messageStore.provide("type");
         if (!requiredNickname.equals(self.getNickname())) {
             self.modifyNickname(requiredNickname).queue();
@@ -133,12 +138,20 @@ public final class DiscordBot {
         return botConfig;
     }
 
+    public LogController getLogController() {
+        return logController;
+    }
+
     public MysqlConnection getDatabaseConnection() {
         return databaseConnection;
     }
 
     public InformationGrabber getInformationGrabber() {
         return informationGrabber;
+    }
+
+    public Guild getActiveGuild() {
+        return activeGuild;
     }
 
     public static DiscordBot create(MessageStore messageStore, BotConfig botConfig, String guildId) {
