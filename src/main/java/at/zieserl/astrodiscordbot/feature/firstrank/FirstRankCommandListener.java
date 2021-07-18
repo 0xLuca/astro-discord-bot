@@ -37,6 +37,10 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         }
         final Member member = event.getMember();
         assert member != null : "Unknown member used first rank command";
+        if (discordBot.getInformationGrabber().isRegistered(member)) {
+            event.reply(discordBot.getMessageStore().provide("first-rank-command-already-registered")).queue();
+            return;
+        }
         grantFirstRankRoles(member);
         event.reply(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
     }
@@ -50,7 +54,9 @@ public final class FirstRankCommandListener extends ListenerAdapter {
             return;
         }
         Member member = event.getMember();
-        if (member == null) {
+        assert member != null : "Unknown member used first rank command";
+        if (discordBot.getInformationGrabber().isRegistered(member)) {
+            event.getChannel().sendMessage(discordBot.getMessageStore().provide("first-rank-command-already-registered")).queue();
             return;
         }
         grantFirstRankRoles(member);

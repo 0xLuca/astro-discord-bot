@@ -24,7 +24,7 @@ public class ClearListener extends ListenerAdapter {
         if (!event.getName().equalsIgnoreCase("clear")) {
             return;
         }
-        if (!event.getMember().getRoles().contains(event.getGuild().getRoleById("851109998578237471"))) {
+        if (!event.getMember().getRoles().contains(event.getGuild().getRoleById(discordBot.getBotConfig().retrieveValue("admin-role")))) {
             event.reply("Du hast keine Berechtigung diesen Befehl zu nutzen.").queue();
             return;
         }
