@@ -1,6 +1,6 @@
 package at.zieserl.astrodiscordbot.employee;
 
-public class SpecialUnit {
+public final class SpecialUnit {
     private final Integer id;
     private final Long discordId;
     private final String name;

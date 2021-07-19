@@ -17,16 +17,16 @@ import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.components.Button;
+import net.dv8tion.jda.api.interactions.components.selections.SelectOption;
 import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import net.dv8tion.jda.api.requests.restaction.interactions.ReplyAction;
+import net.dv8tion.jda.api.requests.restaction.interactions.UpdateInteractionAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public final class InfoListener extends ListenerAdapter {
     private final DiscordBot discordBot;
@@ -35,10 +35,11 @@ public final class InfoListener extends ListenerAdapter {
         put("demote", InfoListener.this::performDemote);
         put("add-education", InfoListener.this::showAddEducationSelection);
         put("add-special-unit", InfoListener.this::showAddSpecialUnitSelection);
+        put("warn", InfoListener.this::performWarn);
     }};
-    private final Map<String, TriConsumer<SelectionMenuEvent, Employee, String>> selectionMenuActions = new HashMap<String, TriConsumer<SelectionMenuEvent, Employee, String>> () {{
-        put("add-education", InfoListener.this::performAddEducation);
-        put("add-special-unit", InfoListener.this::performAddSpecialUnit);
+    private final Map<String, TriConsumer<SelectionMenuEvent, Employee, List<String>>> selectionMenuActions = new HashMap<String, TriConsumer<SelectionMenuEvent, Employee, List<String>>>() {{
+        put("education-selection", InfoListener.this::performChangeEducations);
+        put("special-unit-selection", InfoListener.this::performChangeSpecialUnits);
     }};
     private final Map<String, Employee> employeeCache = new HashMap<>();
     private final String adminCommandsChannelId;
@@ -58,7 +59,7 @@ public final class InfoListener extends ListenerAdapter {
         }
         Member member = Objects.requireNonNull(event.getOption("member")).getAsMember();
         if (member == null) {
-            event.reply("Dieser Member konnte nicht geladen werden.").queue();
+            event.reply("Dieser Member konnte nicht geladen werden.").setEphemeral(true).queue();
             return;
         }
 
@@ -69,7 +70,7 @@ public final class InfoListener extends ListenerAdapter {
                 addControlActionRow(event.replyEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), memberId).queue();
             });
             if (!optionalEmployee.isPresent()) {
-                event.reply("Dieser User wurde nicht in der Datenbank gefunden!").queue();
+                event.reply("Dieser User wurde nicht in der Datenbank gefunden!").setEphemeral(true).queue();
             }
         });
     }
@@ -81,12 +82,15 @@ public final class InfoListener extends ListenerAdapter {
         }
         String[] splitComponentId = event.getComponentId().split(":");
         assert splitComponentId.length == 2 : "Invalid command id!";
-        String action = splitComponentId[0];
+        String actionName = splitComponentId[0];
         String discordId = splitComponentId[1];
         Employee employee = employeeCache.get(discordId);
-        buttonActions.get(action).accept(event, employee);
+        BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
+        action.accept(event, employee);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-        event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
+        if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
+            event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
+        }
     }
 
     @Override
@@ -94,18 +98,19 @@ public final class InfoListener extends ListenerAdapter {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
-        if (event.getSelectedOptions() == null || event.getSelectedOptions().size() != 1) {
+        if (event.getSelectedOptions() == null) {
             return;
         }
-        String[] splitComponentId = event.getSelectedOptions().get(0).getValue().split(":");
-        assert splitComponentId.length == 3 : "Invalid selection menu id!";
-        String action = splitComponentId[0];
+        String[] splitComponentId = event.getComponentId().split(":");
+        assert splitComponentId.length == 2 : "Invalid selection menu id!";
+        String actionName = splitComponentId[0];
         String discordId = splitComponentId[1];
-        String selectedId = splitComponentId[2];
+        List<String> newIds = new ArrayList<>();
+        event.getSelectedOptions().forEach(selectOption -> newIds.add(selectOption.getValue()));
         Employee employee = employeeCache.get(discordId);
-        selectionMenuActions.get(action).accept(event, employee, selectedId);
+        selectionMenuActions.get(actionName).accept(event, employee, newIds);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-        addControlActionRow(event.replyEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
+        addControlActionRow(event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
     }
 
     private MessageEmbed buildInformationEmbed(Member member, JDA jda, Employee employee) {
@@ -124,6 +129,10 @@ public final class InfoListener extends ListenerAdapter {
         if (!specialUnits.isEmpty()) {
             builder.addField("Spezialeinheiten", specialUnits, false);
         }
+        Integer warns = employee.getWarnings();
+        if (employee.getWarnings() > 0) {
+            builder.addField("Verwarnungen", warns.toString(), false);
+        }
 
         builder.setFooter(discordBot.getMessageStore().provide("type"), jda.getSelfUser().getAvatarUrl());
         return builder.build();
@@ -133,8 +142,19 @@ public final class InfoListener extends ListenerAdapter {
         return action.addActionRow(
                 Button.success("promote:" + memberId, discordBot.getMessageStore().provide("promote-text")),
                 Button.danger("demote:" + memberId, discordBot.getMessageStore().provide("demote-text")),
-                Button.success("add-education:" + memberId, discordBot.getMessageStore().provide("add-education-text")),
-                Button.success("add-special-unit:" + memberId, discordBot.getMessageStore().provide("add-special-unit-text")),
+                Button.primary("add-education:" + memberId, discordBot.getMessageStore().provide("add-education-text")),
+                Button.primary("add-special-unit:" + memberId, discordBot.getMessageStore().provide("add-special-unit-text")),
+                Button.danger("warn:" + memberId, discordBot.getMessageStore().provide("warn-text"))
+                //Button.primary("additional_actions:" + memberId, discordBot.getMessageStore().provide("additional-actions-text"))
+        );
+    }
+
+    private UpdateInteractionAction addControlActionRow(UpdateInteractionAction action, String memberId) {
+        return action.setActionRow(
+                Button.success("promote:" + memberId, discordBot.getMessageStore().provide("promote-text")),
+                Button.danger("demote:" + memberId, discordBot.getMessageStore().provide("demote-text")),
+                Button.primary("add-education:" + memberId, discordBot.getMessageStore().provide("add-education-text")),
+                Button.primary("add-special-unit:" + memberId, discordBot.getMessageStore().provide("add-special-unit-text")),
                 Button.danger("warn:" + memberId, discordBot.getMessageStore().provide("warn-text"))
                 //Button.primary("additional_actions:" + memberId, discordBot.getMessageStore().provide("additional-actions-text"))
         );
@@ -155,13 +175,11 @@ public final class InfoListener extends ListenerAdapter {
         }
 
         int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
-        String newServiceNumberFormatted = formatServiceNumber(newServiceNumber);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
         employee.setServiceNumber(newServiceNumber);
-        //event.reply(String.format("%s wurde erfolgreich zu %s befördert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
         discordBot.getLogController().postRankChange(employee);
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
@@ -182,7 +200,6 @@ public final class InfoListener extends ListenerAdapter {
         }
 
         int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
-        String newServiceNumberFormatted = formatServiceNumber(newServiceNumber);
         Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
@@ -194,32 +211,62 @@ public final class InfoListener extends ListenerAdapter {
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
+    private void performWarn(ButtonClickEvent event, Employee employee) {
+        employee.setWarnings(employee.getWarnings() + 1);
+        RoleController.grantRole(Objects.requireNonNull(discordBot.getActiveGuild().getMemberById(employee.getDiscordId())), discordBot.getBotConfig().retrieveValue("warn-role"));
+        discordBot.getInformationGrabber().saveEmployeeData(employee);
+    }
+
     private void showAddEducationSelection(ButtonClickEvent event, Employee employee) {
-        SelectionMenu.Builder menu = SelectionMenu.create("education-selection");
-        discordBot.getInformationGrabber().getEducations().forEach(education -> menu.addOption(
+        SelectionMenu.Builder menu = SelectionMenu.create(String.format("education-selection:%s", employee.getDiscordId()));
+
+        menu.addOptions(discordBot.getInformationGrabber().getEducations().stream().map(education -> SelectOption.of(
                 education.getName(),
-                String.format("add-education:%s:%s", employee.getDiscordId(), education.getId().toString())
-        ));
-        //event.reply(discordBot.getMessageStore().provide("add-education-select-text")).addActionRow(menu.build()).queue();
+                education.getId().toString()
+        )).collect(Collectors.toList()));
+
+        menu.setDefaultOptions(employee.getEducationList().stream().map(education -> SelectOption.of(
+                education.getName(),
+                education.getId().toString()
+        )).collect(Collectors.toList()));
+
+        menu.setMinValues(0);
+        menu.setMaxValues(menu.getOptions().size());
+
+        menu.setPlaceholder("Wähle eine Ausbildung aus");
         event.deferEdit().setActionRow(menu.build()).queue();
     }
 
     private void showAddSpecialUnitSelection(ButtonClickEvent event, Employee employee) {
-        SelectionMenu.Builder menu = SelectionMenu.create("special-unit-selection");
-        discordBot.getInformationGrabber().getEducations().forEach(education -> menu.addOption(
-                String.format("add-special-unit:%s:%s", employee.getDiscordId(), education.getId().toString()),
-                education.getName()
-        ));
-        //event.reply(discordBot.getMessageStore().provide("add-special-unit-select-text")).addActionRow(menu.build()).queue();
+        SelectionMenu.Builder menu = SelectionMenu.create(String.format("special-unit-selection:%s", employee.getDiscordId()));
+        menu.addOptions(discordBot.getInformationGrabber().getSpecialUnits().stream().map(specialUnit -> SelectOption.of(
+                specialUnit.getName(),
+                specialUnit.getId().toString()
+        )).collect(Collectors.toList()));
+
+        menu.setDefaultOptions(employee.getSpecialUnitList().stream().map(specialUnit -> SelectOption.of(
+                specialUnit.getName(),
+                specialUnit.getId().toString()
+        )).collect(Collectors.toList()));
+
+        menu.setMinValues(0);
+        menu.setMaxValues(menu.getOptions().size());
+        menu.setPlaceholder("Wähle eine Spezialeinheit aus");
         event.deferEdit().setActionRow(menu.build()).queue();
     }
 
-    private void performAddEducation(SelectionMenuEvent event, Employee employee, String educationId) {
-
+    private void performChangeEducations(SelectionMenuEvent event, Employee employee, List<String> educationIds) {
+        employee.getEducationList().clear();
+        educationIds.stream().map(educationId -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(educationId)))
+                .forEach(employee.getEducationList()::add);
+        discordBot.getInformationGrabber().saveEmployeeEducations(employee);
     }
 
-    private void performAddSpecialUnit(SelectionMenuEvent event, Employee employee, String specialUnitId) {
-
+    private void performChangeSpecialUnits(SelectionMenuEvent event, Employee employee, List<String> specialUnitIds) {
+        employee.getSpecialUnitList().clear();
+        specialUnitIds.stream().map(specialUnitId -> discordBot.getInformationGrabber().getSpecialUnitById(Integer.parseInt(specialUnitId)))
+                .forEach(employee.getSpecialUnitList()::add);
+        discordBot.getInformationGrabber().saveEmployeeSpecialUnits(employee);
     }
 
     private String formatServiceNumber(int serviceNumber) {

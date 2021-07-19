@@ -2,6 +2,7 @@ package at.zieserl.astrodiscordbot.employee;
 
 import net.dv8tion.jda.api.entities.Member;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,8 +25,8 @@ public final class Employee {
         this.rank = rank;
         this.warnings = warnings;
         this.worktime = worktime;
-        this.educationList = Arrays.asList(educations);
-        this.specialUnitList = Arrays.asList(specialUnits);
+        this.educationList = new ArrayList<>(Arrays.asList(educations));
+        this.specialUnitList = new ArrayList<>(Arrays.asList(specialUnits));
     }
 
     public Integer getId() {
