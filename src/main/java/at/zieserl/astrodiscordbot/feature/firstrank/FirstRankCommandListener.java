@@ -9,6 +9,8 @@ import at.zieserl.astrodiscordbot.employee.SpecialUnit;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +55,31 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         saveEmployee(member, name);
     }
 
+    @Override
+    public void onGuildMessageReceived(@NotNull final GuildMessageReceivedEvent event) {
+        if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
+            return;
+        }
+        final String commandFormat = "!" + firstRankCommandName;
+        if (!event.getMessage().getContentRaw().toLowerCase().startsWith(commandFormat)) {
+            return;
+        }
+        final Member member = event.getMember();
+        assert member != null : "Unknown member used first rank command";
+        if (discordBot.getInformationGrabber().isRegistered(member)) {
+            event.getChannel().sendMessage(discordBot.getMessageStore().provide("first-rank-command-already-registered")).queue();
+            return;
+        }
+        final String name = event.getMessage().getContentRaw().substring(commandFormat.length());
+        if (name.trim().isEmpty()) {
+            event.getChannel().sendMessage("Du musst deinen IC Namen angeben!").queue();
+            return;
+        }
+        grantFirstRankRoles(member);
+        event.getChannel().sendMessage(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
+        saveEmployee(member, name);
+    }
+
     private void saveEmployee(final Member member, final String name) {
         final int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
         final Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
@@ -77,6 +104,11 @@ public final class FirstRankCommandListener extends ListenerAdapter {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean shouldHandleEvent(final GenericInteractionCreateEvent event) {
+        return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean shouldHandleEvent(final GenericGuildMessageEvent event) {
         return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
