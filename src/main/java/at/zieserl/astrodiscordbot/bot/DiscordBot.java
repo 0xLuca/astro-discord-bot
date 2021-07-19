@@ -9,6 +9,7 @@ import at.zieserl.astrodiscordbot.feature.greeter.GreetListener;
 import at.zieserl.astrodiscordbot.feature.info.InfoListener;
 import at.zieserl.astrodiscordbot.feature.register.RegisterListener;
 import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
+import at.zieserl.astrodiscordbot.feature.terminate.TerminateListener;
 import at.zieserl.astrodiscordbot.feature.vacation.VacationListener;
 import at.zieserl.astrodiscordbot.feature.worktime.WorktimeListener;
 import at.zieserl.astrodiscordbot.i18n.MessageStore;
@@ -78,6 +79,7 @@ public final class DiscordBot {
         jda.addEventListener(InfoListener.forBot(this));
         jda.addEventListener(ClearListener.forBot(this));
         jda.addEventListener(RegisterListener.forBot(this));
+        jda.addEventListener(TerminateListener.forBot(this));
 
         registerCommands();
         changeNicknameIfNeeded();
@@ -85,10 +87,6 @@ public final class DiscordBot {
 
     private void registerCommands() {
         assert activeGuild != null : "Could not find guild by given guild id";
-
-        /*activeGuild.retrieveCommands().complete().forEach(command -> {
-            System.out.println(command.getName() + " " + command.getDescription());
-        });*/
 
         registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("first-rank-command-name"), getMessageStore().provide("first-rank-command-description"))
                 .addOption(OptionType.STRING, "name", "Dein IC Name", true));
@@ -99,6 +97,9 @@ public final class DiscordBot {
                 .addOption(OptionType.USER, "member", "Der Member, der registriert werden soll", true)
                 .addOption(OptionType.STRING, "name", "Der IC Name der Person", true)
                 .addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true));
+        registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("terminate-command-name"), "Mit diesem Befehl können Mitarbeiter gekündigt werden")
+                .addOption(OptionType.USER, "member", "Der Member, der gekündigt werden soll", true)
+                .addOption(OptionType.STRING, "reason", "Der Grund warum der Mitarbeiter gekündigt werden soll", true));
     }
 
     private void registerCommand(final Guild guild, final CommandData commandData) {

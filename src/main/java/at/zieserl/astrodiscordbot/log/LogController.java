@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 
 import java.awt.Color;
 import java.text.DateFormat;
@@ -69,6 +70,26 @@ public final class LogController {
             builder.addField("Neuer Dienstgrad", message, false);
         });
 
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        logsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postTermination(final Member member, final String reason) {
+        final EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
+        builder.setColor(Color.RED);
+        builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
+        builder.addField("Kündigung", discordBot.getMessageStore().provide("terminated-text").replace("%mention%", member.getAsMention()).replace("%reason%", reason), false);
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        logsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postSelfTermination(final User user) {
+        final EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
+        builder.setColor(Color.RED);
+        builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
+        builder.addField("Kündigung", discordBot.getMessageStore().provide("self-terminated-text").replace("%mention%", user.getAsMention()), false);
         builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }

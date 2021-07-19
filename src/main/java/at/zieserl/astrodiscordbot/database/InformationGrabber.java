@@ -162,8 +162,8 @@ public final class InformationGrabber {
         throw new RuntimeException("Cannot find free service number for rank " + rank.getName() + "!");
     }
 
-    public boolean isRegistered(final Member member) {
-        final Optional<ResultSet> optionalEmployeeNameResult = connection.executeQuery("SELECT name FROM employee WHERE discord_id = ?", member.getId());
+    public boolean isRegistered(final String discordId) {
+        final Optional<ResultSet> optionalEmployeeNameResult = connection.executeQuery("SELECT name FROM employee WHERE discord_id = ?", discordId);
         if (optionalEmployeeNameResult.isPresent()) {
             try {
                 return optionalEmployeeNameResult.get().next();
@@ -172,6 +172,10 @@ public final class InformationGrabber {
             }
         }
         return false;
+    }
+
+    public boolean isRegistered(final Member member) {
+        return isRegistered(member.getId());
     }
 
     public void registerEmployeeData(final Employee employee) {
@@ -185,6 +189,16 @@ public final class InformationGrabber {
                 employee.getWorktime().toString());
             employee.setId(newId);
         });
+    }
+
+    public void deleteEmployee(final Employee employee) {
+        employeeCache.remove(employee.getDiscordId());
+        //executor.execute(() -> {
+            final String employeeId = employee.getId().toString();
+            connection.executeQuery("DELETE FROM employee WHERE id = ?", employeeId);
+            connection.executeQuery("DELETE FROM employee_education WHERE employee_id = ?", employeeId);
+            connection.executeQuery("DELETE FROM employee_special_unit WHERE employee_id = ?", employeeId);
+        //});
     }
 
     public void saveEmployeeData(final Employee employee) {
