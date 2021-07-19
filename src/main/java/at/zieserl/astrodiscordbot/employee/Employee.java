@@ -89,7 +89,7 @@ public final class Employee {
     }
 
     public void updateNickname(Member member) {
-        member.modifyNickname(String.format("[%s] %s", formatServiceNumber(getServiceNumber()), getName())).queue();
+        member.modifyNickname(String.format("[%s] %s", formatServiceNumber(getServiceNumber()), getName())).complete();
     }
 
     private String formatServiceNumber(int serviceNumber) {

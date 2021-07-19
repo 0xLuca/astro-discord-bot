@@ -213,7 +213,10 @@ public final class InfoListener extends ListenerAdapter {
 
     private void performWarn(ButtonClickEvent event, Employee employee) {
         employee.setWarnings(employee.getWarnings() + 1);
-        RoleController.grantRole(Objects.requireNonNull(discordBot.getActiveGuild().getMemberById(employee.getDiscordId())), discordBot.getBotConfig().retrieveValue("warn-role"));
+        RoleController.grantRole(Objects.requireNonNull(
+                discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete()),
+                discordBot.getBotConfig().retrieveValue("warn-role")
+        );
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
