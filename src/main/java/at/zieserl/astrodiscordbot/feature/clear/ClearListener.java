@@ -31,6 +31,8 @@ public class ClearListener extends ListenerAdapter {
         final TextChannel channel = event.getTextChannel();
         List<Message> messages = channel.getHistory().retrievePast(50).complete();
 
+        event.reply("Alle Nachrichten aus diesem Kanal werden gelöscht.").setEphemeral(true).queue();
+
         while (!messages.isEmpty()) {
             channel.deleteMessages(messages).complete();
             messages = channel.getHistory().retrievePast(50).complete();
