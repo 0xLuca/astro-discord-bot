@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MemberListCommandListener extends ListenerAdapter {
+public final class MemberListCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String adminCommandsChannelId;
 

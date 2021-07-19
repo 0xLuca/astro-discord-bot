@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class TerminateListener extends ListenerAdapter {
+public final class TerminateListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String terminateCommandName;
     private final String adminCommandsChannelId;
