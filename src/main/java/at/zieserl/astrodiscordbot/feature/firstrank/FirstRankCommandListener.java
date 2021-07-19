@@ -64,6 +64,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         if (!event.getMessage().getContentRaw().toLowerCase().startsWith(commandFormat)) {
             return;
         }
+        event.getMessage().delete().queue();
         final Member member = event.getMember();
         assert member != null : "Unknown member used first rank command";
         if (discordBot.getInformationGrabber().isRegistered(member)) {
