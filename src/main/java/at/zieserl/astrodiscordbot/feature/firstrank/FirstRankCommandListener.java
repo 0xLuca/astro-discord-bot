@@ -55,7 +55,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
 
     private void saveEmployee(Member member, String name) {
         int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
-        Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
+        Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
         employee.updateNickname(member);
         discordBot.getLogController().postNewEmployee(employee);
         discordBot.getInformationGrabber().registerEmployeeData(employee);

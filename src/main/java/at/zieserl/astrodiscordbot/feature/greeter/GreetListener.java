@@ -39,7 +39,7 @@ public final class GreetListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find Greet channel";
-        channel.sendMessage(builder.build()).queue();
+        channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     @Override
@@ -61,7 +61,7 @@ public final class GreetListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find Greet channel";
-        channel.sendMessage(builder.build()).queue();
+        channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public static GreetListener forBot(DiscordBot bot) {

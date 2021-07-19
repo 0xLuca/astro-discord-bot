@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 public final class InformationGrabber {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final MysqlConnection connection;
-    private final Map<Long, Employee> employeeCache = new HashMap<>();
+    private final Map<String, Employee> employeeCache = new HashMap<>();
     private final Map<Integer, Rank> ranks = new HashMap<>();
     private final Map<Integer, Education> educations = new HashMap<>();
     private final Map<Integer, SpecialUnit> specialUnits = new HashMap<>();
@@ -253,6 +253,9 @@ public final class InformationGrabber {
     }
 
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(String discordId) {
+        if (employeeCache.containsKey(discordId)) {
+            return CompletableFuture.completedFuture(Optional.of(employeeCache.get(discordId)));
+        }
         Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
         return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
             Employee employee;
@@ -266,10 +269,11 @@ public final class InformationGrabber {
                             resultSet.getString("name"),
                             getRankById(resultSet.getInt("rank_id")),
                             resultSet.getInt("warnings"),
-                            resultSet.getInt("worktime"),
+                            resultSet.getLong("worktime"),
                             getEducationsForEmployee(id),
                             getSpecialUnitsForEmployee(id)
                     );
+                    employeeCache.put(discordId, employee);
                 } else {
                     throw new RuntimeException("Employee result set had no values in it!");
                 }
@@ -282,6 +286,10 @@ public final class InformationGrabber {
 
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(long discordId) {
         return findEmployeeByDiscordId(String.valueOf(discordId));
+    }
+
+    public void removeEmployeeFromCache(String discordId) {
+        employeeCache.remove(discordId);
     }
 
     public List<Rank> getRanks() {

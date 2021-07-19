@@ -13,11 +13,11 @@ public final class Employee {
     private final String name;
     private Rank rank;
     private Integer warnings;
-    private Integer worktime;
+    private Long worktime;
     private final List<Education> educationList;
     private final List<SpecialUnit> specialUnitList;
 
-    public Employee(Integer id, Integer serviceNumber, String discordId, String name, Rank rank, Integer warnings, Integer worktime, Education[] educations, SpecialUnit[] specialUnits) {
+    public Employee(Integer id, Integer serviceNumber, String discordId, String name, Rank rank, Integer warnings, Long worktime, Education[] educations, SpecialUnit[] specialUnits) {
         this.id = id;
         this.serviceNumber = serviceNumber;
         this.discordId = discordId;
@@ -72,11 +72,11 @@ public final class Employee {
         this.warnings = warnings;
     }
 
-    public Integer getWorktime() {
+    public Long getWorktime() {
         return worktime;
     }
 
-    public void setWorktime(Integer worktime) {
+    public void setWorktime(Long worktime) {
         this.worktime = worktime;
     }
 

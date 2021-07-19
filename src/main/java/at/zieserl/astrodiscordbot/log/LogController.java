@@ -44,7 +44,7 @@ public final class LogController {
         builder.addField("Neuer Mitarbeiter", message, false);
 
         builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
-        logsChannel.sendMessage(builder.build()).queue();
+        logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public void postRankChange(Employee... employees) {
@@ -70,7 +70,7 @@ public final class LogController {
         });
 
         builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
-        logsChannel.sendMessage(builder.build()).queue();
+        logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public static LogController forBot(DiscordBot discordBot) {

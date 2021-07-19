@@ -54,7 +54,7 @@ public final class VacationListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find Abmelden channel";
-        channel.sendMessage(builder.build()).queue(message -> {
+        channel.sendMessageEmbeds(builder.build()).queue(message -> {
             message.addReaction(Strings.VACATION_ACCEPT_EMOJI).queue();
             message.addReaction(Strings.VACATION_DECLINE_EMOJI).queue();
             event.getMessage().delete().queue();

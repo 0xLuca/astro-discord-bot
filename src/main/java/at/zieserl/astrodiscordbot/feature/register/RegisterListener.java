@@ -46,7 +46,7 @@ public final class RegisterListener extends ListenerAdapter {
             int serviceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(rank);
             List<Education> educations = new ArrayList<>();
             Arrays.stream(educationIds).forEach(educationId -> educations.add(discordBot.getInformationGrabber().getEducationById(educationId)));
-            Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0, educations.toArray(new Education[0]), new SpecialUnit[0]);
+            Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0L, educations.toArray(new Education[0]), new SpecialUnit[0]);
             discordBot.getInformationGrabber().registerEmployeeData(employee);
             discordBot.getInformationGrabber().saveEmployeeEducations(employee);
             employee.updateNickname(member);

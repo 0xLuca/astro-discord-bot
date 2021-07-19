@@ -60,7 +60,7 @@ public final class WorktimeListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find logs channel";
-        channel.sendMessage(builder.build()).queue();
+        channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     @Override
@@ -82,7 +82,12 @@ public final class WorktimeListener extends ListenerAdapter {
         final long sessionStartTime = lastSessions.getOrDefault(member.getUser().getIdLong(), 0L);
         final long sessionTime = System.currentTimeMillis() - sessionStartTime;
         if (sessionStartTime != 0 && sessionTime != 0) {
-            
+            discordBot.getInformationGrabber().findEmployeeByDiscordId(member.getId()).thenAccept(optionalEmployee -> {
+                optionalEmployee.ifPresent(employee -> {
+                    employee.setWorktime(employee.getWorktime() + sessionTime);
+                    discordBot.getInformationGrabber().saveEmployeeData(employee);
+                });
+            });
         }
         final long seconds = sessionTime / 1000;
         final String formattedSessionTime =
@@ -101,7 +106,7 @@ public final class WorktimeListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find logs channel";
-        channel.sendMessage(builder.build()).queue();
+        channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

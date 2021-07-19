@@ -44,7 +44,7 @@ public final class SetupCommandListener extends ListenerAdapter {
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
         assert channel != null : "Could not find Dienstmeldungen channel";
-        channel.sendMessage(builder.build()).queue(message -> message.addReaction(discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji")).queue());
+        channel.sendMessageEmbeds(builder.build()).queue(message -> message.addReaction(discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji")).queue());
 
     }
 

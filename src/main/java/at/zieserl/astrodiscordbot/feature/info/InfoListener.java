@@ -41,7 +41,6 @@ public final class InfoListener extends ListenerAdapter {
         put("education-selection", InfoListener.this::performChangeEducations);
         put("special-unit-selection", InfoListener.this::performChangeSpecialUnits);
     }};
-    private final Map<String, Employee> employeeCache = new HashMap<>();
     private final String adminCommandsChannelId;
 
     private InfoListener(DiscordBot discordBot) {
@@ -66,7 +65,6 @@ public final class InfoListener extends ListenerAdapter {
         String memberId = member.getId();
         discordBot.getInformationGrabber().findEmployeeByDiscordId(memberId).thenAccept(optionalEmployee -> {
             optionalEmployee.ifPresent(employee -> {
-                employeeCache.put(memberId, employee);
                 addControlActionRow(event.replyEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), memberId).queue();
             });
             if (!optionalEmployee.isPresent()) {
@@ -84,13 +82,16 @@ public final class InfoListener extends ListenerAdapter {
         assert splitComponentId.length == 2 : "Invalid command id!";
         String actionName = splitComponentId[0];
         String discordId = splitComponentId[1];
-        Employee employee = employeeCache.get(discordId);
-        BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
-        action.accept(event, employee);
-        Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-        if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
-            event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
-        }
+        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> {
+            optionalEmployee.ifPresent(employee -> {
+                BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
+                action.accept(event, employee);
+                Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
+                if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
+                    event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
+                }
+            });
+        });
     }
 
     @Override
@@ -107,10 +108,13 @@ public final class InfoListener extends ListenerAdapter {
         String discordId = splitComponentId[1];
         List<String> newIds = new ArrayList<>();
         event.getSelectedOptions().forEach(selectOption -> newIds.add(selectOption.getValue()));
-        Employee employee = employeeCache.get(discordId);
-        selectionMenuActions.get(actionName).accept(event, employee, newIds);
-        Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-        addControlActionRow(event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
+        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> {
+            optionalEmployee.ifPresent(employee -> {
+                selectionMenuActions.get(actionName).accept(event, employee, newIds);
+                Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
+                addControlActionRow(event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
+            });
+        });
     }
 
     private MessageEmbed buildInformationEmbed(Member member, JDA jda, Employee employee) {
