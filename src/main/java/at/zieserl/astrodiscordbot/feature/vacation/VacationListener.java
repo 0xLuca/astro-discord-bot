@@ -26,14 +26,14 @@ public final class VacationListener extends ListenerAdapter {
     private final String vacationChannelId;
     private final List<Role> allowedVacationReactRoles;
 
-    private VacationListener(DiscordBot discordBot) {
+    private VacationListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.vacationChannelId = discordBot.getBotConfig().retrieveValue("vacation-channel");
         this.allowedVacationReactRoles = Arrays.stream(discordBot.getBotConfig().retrieveValue("vacation-react-roles").split(",")).map(roleId -> discordBot.getActiveGuild().getRoleById(roleId)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onGuildMessageReceived(@NotNull final GuildMessageReceivedEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
@@ -41,7 +41,7 @@ public final class VacationListener extends ListenerAdapter {
         final TextChannel channel = event.getGuild().getTextChannelById(vacationChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
 
-        String name;
+        final String name;
         if (event.getMember() != null) {
             name = event.getMember().getEffectiveName();
         } else {
@@ -62,17 +62,17 @@ public final class VacationListener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageReactionAdd(@NotNull GuildMessageReactionAddEvent event) {
+    public void onGuildMessageReactionAdd(@NotNull final GuildMessageReactionAddEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
 
         final TextChannel channel = event.getChannel();
-        Member member = event.getGuild().retrieveMemberById(event.getUserId()).complete();
+        final Member member = event.getGuild().retrieveMemberById(event.getUserId()).complete();
         if (!isMemberAllowedToReact(member)) {
             channel.retrieveMessageById(event.getMessageId()).queue(message -> {
                 if (event.getReactionEmote().isEmoji()) {
-                    String emoji = event.getReactionEmote().getEmoji();
+                    final String emoji = event.getReactionEmote().getEmoji();
                     message.removeReaction(emoji, member.getUser()).queue();
                 }
             });
@@ -80,24 +80,24 @@ public final class VacationListener extends ListenerAdapter {
         }
         channel.retrieveMessageById(event.getMessageId()).queue(message -> message.clearReactions().queue(unused -> {
             if (event.getReactionEmote().isEmoji()) {
-                String emoji = event.getReactionEmote().getEmoji();
+                final String emoji = event.getReactionEmote().getEmoji();
                 message.addReaction(emoji).queue();
             }
         }));
     }
 
     @Override
-    public void onGuildMessageReactionRemove(@NotNull GuildMessageReactionRemoveEvent event) {
+    public void onGuildMessageReactionRemove(@NotNull final GuildMessageReactionRemoveEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !event.getChannel().getId().equals(vacationChannelId)) {
             return;
         }
-        Member member = event.getMember();
+        final Member member = event.getMember();
         assert member != null : "Unknown member removed a reaction";
         System.out.println("[" + Date.from(Instant.now()) +  "] " + member.getEffectiveName() + " removed reaction " + event.getReactionEmote() + " from message id " + event.getMessageId());
     }
 
-    private boolean isMemberAllowedToReact(Member member) {
-        for (Role role : member.getRoles()) {
+    private boolean isMemberAllowedToReact(final Member member) {
+        for (final Role role : member.getRoles()) {
             if (allowedVacationReactRoles.contains(role)) {
                 return true;
             }
@@ -105,15 +105,15 @@ public final class VacationListener extends ListenerAdapter {
         return false;
     }
 
-    private boolean shouldHandleEvent(GuildMessageReceivedEvent event) {
+    private boolean shouldHandleEvent(final GuildMessageReceivedEvent event) {
         return event.getChannel().getId().equals(vacationChannelId) && !event.getGuild().getSelfMember().equals(event.getMember());
     }
 
-    private boolean shouldHandleEvent(GenericGuildMessageReactionEvent event) {
+    private boolean shouldHandleEvent(final GenericGuildMessageReactionEvent event) {
         return event.getChannel().getId().equals(vacationChannelId) && !event.getGuild().getSelfMember().equals(event.getMember());
     }
 
-    public static VacationListener forBot(DiscordBot discordBot) {
+    public static VacationListener forBot(final DiscordBot discordBot) {
         return new VacationListener(discordBot);
     }
 }

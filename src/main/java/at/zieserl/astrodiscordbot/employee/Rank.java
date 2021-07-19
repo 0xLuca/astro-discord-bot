@@ -7,7 +7,7 @@ public final class Rank {
     private final int startingServiceNumber;
     private final int maxMembers;
 
-    public Rank(Integer id, Long discordId, String name, int startingServiceNumber, int maxMembers) {
+    public Rank(final Integer id, final Long discordId, final String name, final int startingServiceNumber, final int maxMembers) {
         this.id = id;
         this.discordId = discordId;
         this.name = name;

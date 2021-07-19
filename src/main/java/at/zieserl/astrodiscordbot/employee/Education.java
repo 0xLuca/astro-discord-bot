@@ -5,7 +5,7 @@ public final class Education {
     private final Long discordId;
     private final String name;
 
-    public Education(Integer id, Long discordId, String name) {
+    public Education(final Integer id, final Long discordId, final String name) {
         this.id = id;
         this.discordId = discordId;
         this.name = name;

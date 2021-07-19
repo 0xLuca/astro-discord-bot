@@ -15,7 +15,7 @@ public final class MysqlConnection {
     private final String user;
     private final String password;
 
-    private MysqlConnection(String host, String port, String database, String user, String password) {
+    private MysqlConnection(final String host, final String port, final String database, final String user, final String password) {
         this.host = host;
         this.port = port;
         this.database = database;
@@ -23,8 +23,8 @@ public final class MysqlConnection {
         this.password = password;
     }
 
-    public static MysqlConnection establish(String host, String port, String database, String user, String password) {
-        MysqlConnection connection = new MysqlConnection(host, port, database, user, password);
+    public static MysqlConnection establish(final String host, final String port, final String database, final String user, final String password) {
+        final MysqlConnection connection = new MysqlConnection(host, port, database, user, password);
         connection.openConnection();
         if (connection.isConnected()) {
             connection.testConnection();
@@ -52,7 +52,7 @@ public final class MysqlConnection {
                     }
                     connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?connectTimeout=3000&autoReconnect=true&useSSL=false", user, password);
                 }
-            } catch (SQLException ex) {
+            } catch (final SQLException ex) {
                 ex.printStackTrace();
                 connection = null;
             }
@@ -69,7 +69,7 @@ public final class MysqlConnection {
                 connection.close();
                 connection = null;
             }
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             e.printStackTrace();
         }
         connection = null;
@@ -77,17 +77,17 @@ public final class MysqlConnection {
 
     private void testConnection() {
         try {
-            Statement statement = connection.createStatement();
-        } catch (SQLException ex) {
+            final Statement statement = connection.createStatement();
+        } catch (final SQLException ex) {
             closeConnection();
             throw new RuntimeException(ex);
         }
     }
 
-    public Optional<ResultSet> executeQuery(String query, String... parameters) {
+    public Optional<ResultSet> executeQuery(final String query, final String... parameters) {
         if (isConnected()) {
             try {
-                PreparedStatement statement = connection.prepareStatement(query);
+                final PreparedStatement statement = connection.prepareStatement(query);
                 if (parameters.length > 0) {
                     for (int i = 0; i < parameters.length; i++) {
                         statement.setString(i + 1, parameters[i]);
@@ -99,31 +99,31 @@ public final class MysqlConnection {
                 } else {
                     return Optional.of(statement.executeQuery());
                 }
-            } catch (SQLException ex) {
+            } catch (final SQLException ex) {
                 ex.printStackTrace();
             }
         }
         throw new RuntimeException("Can't execute query when no connection is established!");
     }
 
-    public int executeInsertWithReturnNewID(String idField, String query, String... parameters) {
+    public int executeInsertWithReturnNewID(final String idField, final String query, final String... parameters) {
         if (isConnected()) {
             try {
-                String[] generatedColumns = {idField};
-                PreparedStatement statement = connection.prepareStatement(query, generatedColumns);
+                final String[] generatedColumns = {idField};
+                final PreparedStatement statement = connection.prepareStatement(query, generatedColumns);
                 if (parameters.length > 0) {
                     for (int i = 0; i < parameters.length; i++) {
                         statement.setString(i + 1, parameters[i]);
                     }
                 }
                 statement.execute();
-                ResultSet rs = statement.getGeneratedKeys();
+                final ResultSet rs = statement.getGeneratedKeys();
                 if (rs.next()) {
                     return rs.getInt(1);
                 } else {
                     return 0;
                 }
-            } catch (SQLException ex) {
+            } catch (final SQLException ex) {
                 ex.printStackTrace();
             }
         }

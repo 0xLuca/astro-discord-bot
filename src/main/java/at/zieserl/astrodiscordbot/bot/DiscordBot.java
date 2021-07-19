@@ -36,13 +36,13 @@ public final class DiscordBot {
     private final String guildId;
     private Guild activeGuild;
 
-    public DiscordBot(MessageStore messageStore, BotConfig botConfig, String guildId) {
+    public DiscordBot(final MessageStore messageStore, final BotConfig botConfig, final String guildId) {
         this.messageStore = messageStore;
         this.botConfig = botConfig;
         this.guildId = guildId;
     }
 
-    public void start(String token) throws LoginException {
+    public void start(final String token) throws LoginException {
         final JDABuilder builder = JDABuilder.createDefault(token);
         builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
         builder.enableIntents(GatewayIntent.GUILD_MESSAGE_REACTIONS);
@@ -50,7 +50,7 @@ public final class DiscordBot {
         final JDA jda = builder.build();
         try {
             jda.awaitReady();
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             e.printStackTrace();
             return;
         }
@@ -101,12 +101,12 @@ public final class DiscordBot {
                 .addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true));
     }
 
-    private void registerCommand(Guild guild, CommandData commandData) {
+    private void registerCommand(final Guild guild, final CommandData commandData) {
         unregisterCommand(guild, commandData.getName());
         guild.upsertCommand(commandData).complete();
     }
 
-    private void unregisterCommand(Guild guild, String name) {
+    private void unregisterCommand(final Guild guild, final String name) {
         guild.retrieveCommands().complete().forEach(command -> {
                     if (command.getName().equals(name)) {
                         guild.deleteCommandById(command.getId()).complete();
@@ -124,16 +124,16 @@ public final class DiscordBot {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean shouldHandleEvent(GenericGuildEvent event) {
+    public boolean shouldHandleEvent(final GenericGuildEvent event) {
         return event.getGuild().getId().equals(guildId);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean shouldHandleEvent(GenericMessageEvent event) {
+    public boolean shouldHandleEvent(final GenericMessageEvent event) {
         return event.getGuild().getId().equals(guildId);
     }
 
-    public boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
+    public boolean shouldHandleEvent(final GenericInteractionCreateEvent event) {
         return Objects.requireNonNull(event.getGuild()).getId().equals(guildId);
     }
 
@@ -161,7 +161,7 @@ public final class DiscordBot {
         return activeGuild;
     }
 
-    public static DiscordBot create(MessageStore messageStore, BotConfig botConfig, String guildId) {
+    public static DiscordBot create(final MessageStore messageStore, final BotConfig botConfig, final String guildId) {
         return new DiscordBot(messageStore, botConfig, guildId);
     }
 }

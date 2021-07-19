@@ -22,7 +22,7 @@ public final class InformationGrabber {
     private final Map<Integer, Education> educations = new HashMap<>();
     private final Map<Integer, SpecialUnit> specialUnits = new HashMap<>();
 
-    private InformationGrabber(MysqlConnection connection) {
+    private InformationGrabber(final MysqlConnection connection) {
         this.connection = connection;
     }
 
@@ -31,7 +31,7 @@ public final class InformationGrabber {
             ranks.clear();
             try {
                 while (ranksResultSet.next()) {
-                    int rankId = ranksResultSet.getInt("id");
+                    final int rankId = ranksResultSet.getInt("id");
                     ranks.put(rankId,
                             new Rank(
                                     rankId,
@@ -42,7 +42,7 @@ public final class InformationGrabber {
                             )
                     );
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         });
@@ -51,7 +51,7 @@ public final class InformationGrabber {
             educations.clear();
             try {
                 while (educationsResultSet.next()) {
-                    int educationId = educationsResultSet.getInt("id");
+                    final int educationId = educationsResultSet.getInt("id");
                     educations.put(educationId,
                             new Education(
                                     educationId,
@@ -60,7 +60,7 @@ public final class InformationGrabber {
                             )
                     );
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         });
@@ -69,7 +69,7 @@ public final class InformationGrabber {
             specialUnits.clear();
             try {
                 while (specialUnitsResultSet.next()) {
-                    int specialUnitId = specialUnitsResultSet.getInt("id");
+                    final int specialUnitId = specialUnitsResultSet.getInt("id");
                     specialUnits.put(specialUnitId,
                             new SpecialUnit(
                                     specialUnitId,
@@ -78,13 +78,13 @@ public final class InformationGrabber {
                             )
                     );
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public Optional<Rank> getRankForRole(Role role) {
+    public Optional<Rank> getRankForRole(final Role role) {
         return ranks.values().stream().filter(rank -> rank.getDiscordId().toString().equals(role.getId())).findFirst();
     }
 
@@ -96,54 +96,54 @@ public final class InformationGrabber {
         return getRankById(ranks.values().stream().mapToInt(Rank::getId).max().orElseThrow(() -> new RuntimeException("Could not find highest rank!")));
     }
 
-    public Rank getNextHigherRank(Rank rank) {
+    public Rank getNextHigherRank(final Rank rank) {
         return getRankById(ranks.values().stream().mapToInt(Rank::getId).filter(id -> id < rank.getId()).max().orElseThrow(() -> new RuntimeException("Could not find higher rank!")));
     }
 
-    public Rank getNextLowerRank(Rank rank) {
+    public Rank getNextLowerRank(final Rank rank) {
         return getRankById(ranks.values().stream().mapToInt(Rank::getId).filter(id -> id > rank.getId()).min().orElseThrow(() -> new RuntimeException("Could not find lower rank!")));
     }
 
-    public Rank getRankById(int rankId) {
+    public Rank getRankById(final int rankId) {
         return ranks.get(rankId);
     }
 
-    public Education getEducationById(int educationId) {
+    public Education getEducationById(final int educationId) {
         return educations.get(educationId);
     }
 
-    public SpecialUnit getSpecialUnitById(int specialUnitId) {
+    public SpecialUnit getSpecialUnitById(final int specialUnitId) {
         return specialUnits.get(specialUnitId);
     }
 
-    public int countEmployeesWithRank(Rank rank) {
-        Optional<ResultSet> optionalEmployeeCountResult = connection.executeQuery("SELECT COUNT(*) FROM employee WHERE rank_id = ?", rank.getId().toString());
+    public int countEmployeesWithRank(final Rank rank) {
+        final Optional<ResultSet> optionalEmployeeCountResult = connection.executeQuery("SELECT COUNT(*) FROM employee WHERE rank_id = ?", rank.getId().toString());
         if (optionalEmployeeCountResult.isPresent()) {
-            ResultSet employeeCountResult = optionalEmployeeCountResult.get();
+            final ResultSet employeeCountResult = optionalEmployeeCountResult.get();
             try {
                 if (employeeCountResult.next()) {
                     return employeeCountResult.getInt(1);
                 }
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 e.printStackTrace();
             }
         }
         throw new RuntimeException("Could not find employees with rank " + rank.getName() + "!");
     }
 
-    public int findNextFreeServiceNumber(Rank rank) {
-        Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT service_number FROM employee WHERE rank_id = ?", rank.getId().toString());
+    public int findNextFreeServiceNumber(final Rank rank) {
+        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT service_number FROM employee WHERE rank_id = ?", rank.getId().toString());
         if (!optionalEmployeeResult.isPresent()) {
             throw new RuntimeException("Could not get employees for rank " + rank.getName() + "!");
         }
 
-        ResultSet employeeResult = optionalEmployeeResult.get();
-        List<Integer> employeesWithRank = new ArrayList<>();
+        final ResultSet employeeResult = optionalEmployeeResult.get();
+        final List<Integer> employeesWithRank = new ArrayList<>();
         try {
             while (employeeResult.next()) {
                 employeesWithRank.add(employeeResult.getInt("service_number"));
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -151,8 +151,8 @@ public final class InformationGrabber {
             throw new RuntimeException("Cannot find free service number when rank has reached its max member count!");
         }
 
-        int startingServiceNumber = rank.getStartingServiceNumber();
-        int endingServiceNumber = startingServiceNumber + rank.getMaxMembers();
+        final int startingServiceNumber = rank.getStartingServiceNumber();
+        final int endingServiceNumber = startingServiceNumber + rank.getMaxMembers();
         for (int i = startingServiceNumber; i < endingServiceNumber; i++) {
             if (!(employeesWithRank.contains(i))) {
                 return i;
@@ -162,21 +162,21 @@ public final class InformationGrabber {
         throw new RuntimeException("Cannot find free service number for rank " + rank.getName() + "!");
     }
 
-    public boolean isRegistered(Member member) {
-        Optional<ResultSet> optionalEmployeeNameResult = connection.executeQuery("SELECT name FROM employee WHERE discord_id = ?", member.getId());
+    public boolean isRegistered(final Member member) {
+        final Optional<ResultSet> optionalEmployeeNameResult = connection.executeQuery("SELECT name FROM employee WHERE discord_id = ?", member.getId());
         if (optionalEmployeeNameResult.isPresent()) {
             try {
                 return optionalEmployeeNameResult.get().next();
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 throw new RuntimeException(e);
             }
         }
         return false;
     }
 
-    public void registerEmployeeData(Employee employee) {
+    public void registerEmployeeData(final Employee employee) {
         executor.submit(() -> {
-            int newId = connection.executeInsertWithReturnNewID("id", "INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?)",
+            final int newId = connection.executeInsertWithReturnNewID("id", "INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?)",
                 employee.getServiceNumber().toString(),
                 employee.getName(),
                 employee.getDiscordId(),
@@ -187,7 +187,7 @@ public final class InformationGrabber {
         });
     }
 
-    public void saveEmployeeData(Employee employee) {
+    public void saveEmployeeData(final Employee employee) {
         executor.execute(() -> connection.executeQuery("UPDATE employee SET service_number = ?, rank_id = ?, warnings = ?, worktime = ? WHERE discord_id = ?",
                 employee.getServiceNumber().toString(),
                 employee.getRank().getId().toString(),
@@ -196,7 +196,7 @@ public final class InformationGrabber {
                 employee.getDiscordId()));
     }
 
-    public void saveEmployeeEducations(Employee employee) {
+    public void saveEmployeeEducations(final Employee employee) {
         executor.execute(() -> {
             connection.executeQuery("DELETE FROM employee_education WHERE employee_id = ?", employee.getId().toString());
             employee.getEducationList().forEach(education -> connection.executeQuery("INSERT INTO employee_education VALUES(?, ?)",
@@ -206,7 +206,7 @@ public final class InformationGrabber {
         });
     }
 
-    public void saveEmployeeSpecialUnits(Employee employee) {
+    public void saveEmployeeSpecialUnits(final Employee employee) {
         executor.execute(() -> {
             connection.executeQuery("DELETE FROM employee_special_unit WHERE employee_id = ?", employee.getId().toString());
             employee.getSpecialUnitList().forEach(specialUnit -> connection.executeQuery("INSERT INTO employee_special_unit VALUES(?, ?)",
@@ -216,52 +216,52 @@ public final class InformationGrabber {
         });
     }
 
-    public void saveEmployee(Employee employee) {
+    public void saveEmployee(final Employee employee) {
         saveEmployeeData(employee);
         saveEmployeeEducations(employee);
         saveEmployeeSpecialUnits(employee);
     }
 
-    public Education[] getEducationsForEmployee(Integer id) {
-        List<Education> educationList = new ArrayList<>();
+    public Education[] getEducationsForEmployee(final Integer id) {
+        final List<Education> educationList = new ArrayList<>();
         connection.executeQuery("SELECT education_id FROM employee_education WHERE employee_id = ?", id.toString()).ifPresent(educationsResultSet -> {
             try {
                 while (educationsResultSet.next()) {
                     final int educationId = educationsResultSet.getInt("education_id");
                     educationList.add(getEducationById(educationId));
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         });
         return educationList.toArray(new Education[0]);
     }
 
-    public SpecialUnit[] getSpecialUnitsForEmployee(Integer id) {
-        List<SpecialUnit> specialUnitList = new ArrayList<>();
+    public SpecialUnit[] getSpecialUnitsForEmployee(final Integer id) {
+        final List<SpecialUnit> specialUnitList = new ArrayList<>();
         connection.executeQuery("SELECT special_unit_id FROM employee_special_unit WHERE employee_id = ?", id.toString()).ifPresent(specialUnitsResultSet -> {
             try {
                 while (specialUnitsResultSet.next()) {
                     final int specialUnitId = specialUnitsResultSet.getInt("special_unit_id");
                     specialUnitList.add(getSpecialUnitById(specialUnitId));
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException(e);
             }
         });
         return specialUnitList.toArray(new SpecialUnit[0]);
     }
 
-    public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(String discordId) {
+    public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(final String discordId) {
         if (employeeCache.containsKey(discordId)) {
             return CompletableFuture.completedFuture(Optional.of(employeeCache.get(discordId)));
         }
-        Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
+        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
         return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
-            Employee employee;
+            final Employee employee;
             try {
                 if (resultSet.next()) {
-                    int id = resultSet.getInt("id");
+                    final int id = resultSet.getInt("id");
                     employee = new Employee(
                             id,
                             resultSet.getInt("service_number"),
@@ -277,18 +277,18 @@ public final class InformationGrabber {
                 } else {
                     throw new RuntimeException("Employee result set had no values in it!");
                 }
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 throw new RuntimeException(e);
             }
             return Optional.of(employee);
         }, executor)).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 
-    public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(long discordId) {
+    public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(final long discordId) {
         return findEmployeeByDiscordId(String.valueOf(discordId));
     }
 
-    public void removeEmployeeFromCache(String discordId) {
+    public void removeEmployeeFromCache(final String discordId) {
         employeeCache.remove(discordId);
     }
 
@@ -304,7 +304,7 @@ public final class InformationGrabber {
         return new ArrayList<>(specialUnits.values());
     }
 
-    public static InformationGrabber forConnection(MysqlConnection connection) {
+    public static InformationGrabber forConnection(final MysqlConnection connection) {
         return new InformationGrabber(connection);
     }
 }

@@ -20,13 +20,13 @@ public final class LogController {
     private final Role employeeRole;
     private final TextChannel logsChannel;
 
-    private LogController(DiscordBot discordBot) {
+    private LogController(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.employeeRole = discordBot.getActiveGuild().getRoleById(discordBot.getBotConfig().retrieveValue("employee-role"));
         this.logsChannel = discordBot.getActiveGuild().getTextChannelById(discordBot.getBotConfig().retrieveValue("public-logs-channel"));
     }
 
-    public void postNewEmployee(Employee employee) {
+    public void postNewEmployee(final Employee employee) {
         final EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
@@ -34,8 +34,8 @@ public final class LogController {
 
         builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
 
-        Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
-        Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
+        final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+        final Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
         assert member != null && role != null : "Could not find member for employee id / role for rank id!";
         String message = discordBot.getMessageStore().provide("new-employee-log");
         message = message.replace("%mention%", member.getAsMention());
@@ -47,7 +47,7 @@ public final class LogController {
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    public void postRankChange(Employee... employees) {
+    public void postRankChange(final Employee... employees) {
         if (employees.length == 0) {
             throw new IllegalArgumentException("Need to pass at least one employee to post rank change!");
         }
@@ -59,8 +59,8 @@ public final class LogController {
         builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
 
         Arrays.stream(employees).forEach(employee -> {
-            Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
-            Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
+            final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+            final Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
             assert member != null && role != null : "Could not find member for employee id / role for rank id!";
             String message = discordBot.getMessageStore().provide("new-rank-log");
             message = message.replace("%mention%", member.getAsMention());
@@ -73,7 +73,7 @@ public final class LogController {
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    public static LogController forBot(DiscordBot discordBot) {
+    public static LogController forBot(final DiscordBot discordBot) {
         return new LogController(discordBot);
     }
 }

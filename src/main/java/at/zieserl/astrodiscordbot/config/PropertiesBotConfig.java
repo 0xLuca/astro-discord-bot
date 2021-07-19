@@ -6,28 +6,28 @@ import java.util.Properties;
 public final class PropertiesBotConfig implements BotConfig {
     private final Properties properties;
 
-    private PropertiesBotConfig(Properties properties) {
+    private PropertiesBotConfig(final Properties properties) {
         this.properties = properties;
     }
 
     @Override
-    public String retrieveValue(String key) {
+    public String retrieveValue(final String key) {
         return properties.getProperty(key);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static PropertiesBotConfig loadFromPath(File file, String fallbackResource) throws IOException {
-        Properties properties = new Properties();
+    public static PropertiesBotConfig loadFromPath(final File file, final String fallbackResource) throws IOException {
+        final Properties properties = new Properties();
         if (!file.exists()) {
             if (!file.createNewFile()) {
                 throw new IOException("Could not create bot config");
             }
-            InputStream defaultConfig = PropertiesBotConfig.class.getClassLoader().getResourceAsStream(fallbackResource);
+            final InputStream defaultConfig = PropertiesBotConfig.class.getClassLoader().getResourceAsStream(fallbackResource);
             assert defaultConfig != null;
-            byte[] defaultConfigBytes = new byte[defaultConfig.available()];
+            final byte[] defaultConfigBytes = new byte[defaultConfig.available()];
             defaultConfig.read(defaultConfigBytes);
             defaultConfig.close();
-            FileOutputStream stream = new FileOutputStream(file);
+            final FileOutputStream stream = new FileOutputStream(file);
             stream.write(defaultConfigBytes);
             stream.close();
         }

@@ -14,13 +14,13 @@ public final class GreetListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String greetChannelId;
 
-    private GreetListener(DiscordBot discordBot) {
+    private GreetListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.greetChannelId = discordBot.getBotConfig().retrieveValue("greet-channel");
     }
 
     @Override
-    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+    public void onGuildMemberJoin(@NotNull final GuildMemberJoinEvent event) {
         if (!discordBot.shouldHandleEvent(event)) {
             return;
         }
@@ -43,7 +43,7 @@ public final class GreetListener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+    public void onGuildMemberRemove(@NotNull final GuildMemberRemoveEvent event) {
         if (!discordBot.shouldHandleEvent(event)) {
             return;
         }
@@ -64,7 +64,7 @@ public final class GreetListener extends ListenerAdapter {
         channel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    public static GreetListener forBot(DiscordBot bot) {
+    public static GreetListener forBot(final DiscordBot bot) {
         return new GreetListener(bot);
     }
 }

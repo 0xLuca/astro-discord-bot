@@ -19,15 +19,15 @@ public final class Main {
      *
      * @param args first param is the Discord api token, second param the department type to load messages from, and the third param is the server id to run this instance for
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
         if (args.length != 3) {
             throw new IllegalArgumentException("Use the following argument structure: <Token> <Department> <Server ID>");
         }
         final Locale department = new Locale(args[1]);
-        ResourceBundle bundle;
+        final ResourceBundle bundle;
         try {
             bundle = ResourceBundle.getBundle("messages", department);
-        } catch (MissingResourceException e) {
+        } catch (final MissingResourceException e) {
             throw new IllegalArgumentException("Could not find message bundle with given department type!", e);
         }
         final BotConfig config = PropertiesBotConfig.loadFromPath(new File("config.properties"), "config.properties");
@@ -35,7 +35,7 @@ public final class Main {
         final DiscordBot bot = DiscordBot.create(messageStore, config, args[2]);
         try {
             bot.start(args[0]);
-        } catch (LoginException e) {
+        } catch (final LoginException e) {
             throw new IllegalArgumentException("Could not login with given token!", e);
         }
     }

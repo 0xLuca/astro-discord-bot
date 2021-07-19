@@ -17,7 +17,7 @@ public final class Employee {
     private final List<Education> educationList;
     private final List<SpecialUnit> specialUnitList;
 
-    public Employee(Integer id, Integer serviceNumber, String discordId, String name, Rank rank, Integer warnings, Long worktime, Education[] educations, SpecialUnit[] specialUnits) {
+    public Employee(final Integer id, final Integer serviceNumber, final String discordId, final String name, final Rank rank, final Integer warnings, final Long worktime, final Education[] educations, final SpecialUnit[] specialUnits) {
         this.id = id;
         this.serviceNumber = serviceNumber;
         this.discordId = discordId;
@@ -33,7 +33,7 @@ public final class Employee {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(final Integer id) {
         if (this.id != 0) {
             throw new RuntimeException("Cannot set employee id more than once!");
         }
@@ -44,7 +44,7 @@ public final class Employee {
         return serviceNumber;
     }
 
-    public void setServiceNumber(Integer serviceNumber) {
+    public void setServiceNumber(final Integer serviceNumber) {
         this.serviceNumber = serviceNumber;
     }
 
@@ -60,7 +60,7 @@ public final class Employee {
         return rank;
     }
 
-    public void setRank(Rank rank) {
+    public void setRank(final Rank rank) {
         this.rank = rank;
     }
 
@@ -68,7 +68,7 @@ public final class Employee {
         return warnings;
     }
 
-    public void setWarnings(Integer warnings) {
+    public void setWarnings(final Integer warnings) {
         this.warnings = warnings;
     }
 
@@ -76,7 +76,7 @@ public final class Employee {
         return worktime;
     }
 
-    public void setWorktime(Long worktime) {
+    public void setWorktime(final Long worktime) {
         this.worktime = worktime;
     }
 
@@ -88,11 +88,11 @@ public final class Employee {
         return specialUnitList;
     }
 
-    public void updateNickname(Member member) {
+    public void updateNickname(final Member member) {
         member.modifyNickname(String.format("[%s] %s", formatServiceNumber(getServiceNumber()), getName())).complete();
     }
 
-    private String formatServiceNumber(int serviceNumber) {
+    private String formatServiceNumber(final int serviceNumber) {
         return String.format("%02d", serviceNumber);
     }
 }

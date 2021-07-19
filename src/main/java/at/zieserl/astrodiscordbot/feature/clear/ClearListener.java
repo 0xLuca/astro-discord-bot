@@ -12,12 +12,12 @@ import java.util.List;
 public class ClearListener extends ListenerAdapter {
     private final DiscordBot discordBot;
 
-    private ClearListener(DiscordBot discordBot) {
+    private ClearListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
     }
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommand(@NotNull final SlashCommandEvent event) {
         if (!discordBot.shouldHandleEvent(event)) {
             return;
         }
@@ -39,7 +39,7 @@ public class ClearListener extends ListenerAdapter {
         }
     }
 
-    public static ClearListener forBot(DiscordBot discordBot) {
+    public static ClearListener forBot(final DiscordBot discordBot) {
         return new ClearListener(discordBot);
     }
 }

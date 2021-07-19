@@ -23,7 +23,7 @@ public final class WorktimeListener extends ListenerAdapter {
     private final String adminLogsChannelId;
     private final Map<Long, Long> lastSessions = new HashMap<>();
 
-    private WorktimeListener(DiscordBot discordBot) {
+    private WorktimeListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.reactionEmote = discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji");
         this.outOfServiceRoleId = discordBot.getBotConfig().retrieveValue("out-of-service-role");
@@ -32,14 +32,14 @@ public final class WorktimeListener extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+    public void onMessageReactionAdd(@NotNull final MessageReactionAddEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (!event.getReaction().getReactionEmote().getName().equals(reactionEmote)) {
             return;
         }
-        Member member = event.retrieveMember().complete();
+        final Member member = event.retrieveMember().complete();
         if (member.equals(event.getGuild().getSelfMember())) {
             return;
         }
@@ -64,14 +64,14 @@ public final class WorktimeListener extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
+    public void onMessageReactionRemove(@NotNull final MessageReactionRemoveEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (!event.getReaction().getReactionEmote().getName().equals(reactionEmote)) {
             return;
         }
-        Member member = event.retrieveMember().complete();
+        final Member member = event.retrieveMember().complete();
         if (member.equals(event.getGuild().getSelfMember())) {
             return;
         }
@@ -110,11 +110,11 @@ public final class WorktimeListener extends ListenerAdapter {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean shouldHandleEvent(GenericMessageEvent event) {
+    private boolean shouldHandleEvent(final GenericMessageEvent event) {
         return event.getTextChannel().getId().equals(dienstmeldungChannelId);
     }
 
-    public static WorktimeListener forBot(DiscordBot discordBot) {
+    public static WorktimeListener forBot(final DiscordBot discordBot) {
         return new WorktimeListener(discordBot);
     }
 }

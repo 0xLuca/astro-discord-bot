@@ -43,30 +43,28 @@ public final class InfoListener extends ListenerAdapter {
     }};
     private final String adminCommandsChannelId;
 
-    private InfoListener(DiscordBot discordBot) {
+    private InfoListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.adminCommandsChannelId = discordBot.getBotConfig().retrieveValue("admin-commands-channel");
     }
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommand(@NotNull final SlashCommandEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (!event.getName().equalsIgnoreCase("info")) {
             return;
         }
-        Member member = Objects.requireNonNull(event.getOption("member")).getAsMember();
+        final Member member = Objects.requireNonNull(event.getOption("member")).getAsMember();
         if (member == null) {
             event.reply("Dieser Member konnte nicht geladen werden.").setEphemeral(true).queue();
             return;
         }
 
-        String memberId = member.getId();
+        final String memberId = member.getId();
         discordBot.getInformationGrabber().findEmployeeByDiscordId(memberId).thenAccept(optionalEmployee -> {
-            optionalEmployee.ifPresent(employee -> {
-                addControlActionRow(event.replyEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), memberId).queue();
-            });
+            optionalEmployee.ifPresent(employee -> addControlActionRow(event.replyEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), memberId).queue());
             if (!optionalEmployee.isPresent()) {
                 event.reply("Dieser User wurde nicht in der Datenbank gefunden!").setEphemeral(true).queue();
             }
@@ -74,50 +72,46 @@ public final class InfoListener extends ListenerAdapter {
     }
 
     @Override
-    public void onButtonClick(@NotNull ButtonClickEvent event) {
+    public void onButtonClick(@NotNull final ButtonClickEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
-        String[] splitComponentId = event.getComponentId().split(":");
+        final String[] splitComponentId = event.getComponentId().split(":");
         assert splitComponentId.length == 2 : "Invalid command id!";
-        String actionName = splitComponentId[0];
-        String discordId = splitComponentId[1];
-        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> {
-            optionalEmployee.ifPresent(employee -> {
-                BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
-                action.accept(event, employee);
-                Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-                if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
-                    event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
-                }
-            });
-        });
+        final String actionName = splitComponentId[0];
+        final String discordId = splitComponentId[1];
+        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> optionalEmployee.ifPresent(employee -> {
+            final BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
+            action.accept(event, employee);
+            final Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
+            if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
+                event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
+            }
+        }));
     }
 
     @Override
-    public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+    public void onSelectionMenu(@NotNull final SelectionMenuEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
         if (event.getSelectedOptions() == null) {
             return;
         }
-        String[] splitComponentId = event.getComponentId().split(":");
+        final String[] splitComponentId = event.getComponentId().split(":");
         assert splitComponentId.length == 2 : "Invalid selection menu id!";
-        String actionName = splitComponentId[0];
-        String discordId = splitComponentId[1];
-        List<String> newIds = new ArrayList<>();
+        final String actionName = splitComponentId[0];
+        final String discordId = splitComponentId[1];
+        final List<String> newIds = new ArrayList<>();
         event.getSelectedOptions().forEach(selectOption -> newIds.add(selectOption.getValue()));
-        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> {
-            optionalEmployee.ifPresent(employee -> {
-                selectionMenuActions.get(actionName).accept(event, employee, newIds);
-                Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-                addControlActionRow(event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
-            });
-        });
+        discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> optionalEmployee.ifPresent(employee -> {
+            selectionMenuActions.get(actionName).accept(event, employee, newIds);
+            final Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
+            addControlActionRow(event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)), member.getId()).queue();
+        }));
     }
 
-    private MessageEmbed buildInformationEmbed(Member member, JDA jda, Employee employee) {
+    private MessageEmbed buildInformationEmbed(final Member member, final JDA jda, final Employee employee) {
         final EmbedBuilder builder = new EmbedBuilder();
 
         builder.setTitle("Informationen zu " + member.getEffectiveName());
@@ -125,11 +119,11 @@ public final class InfoListener extends ListenerAdapter {
         builder.addField("Dienstnummer", formatServiceNumber(employee.getServiceNumber()), false);
         builder.addField("Name", employee.getName(), false);
         builder.addField("Dienstgrad", employee.getRank().getName(), false);
-        String educations = convertEducationsToString(employee.getEducationList());
+        final String educations = convertEducationsToString(employee.getEducationList());
         if (!educations.isEmpty()) {
             builder.addField("Ausbildungen", educations, false);
         }
-        String specialUnits = convertSpecialUnitsToString(employee.getSpecialUnitList());
+        final String specialUnits = convertSpecialUnitsToString(employee.getSpecialUnitList());
         if (!specialUnits.isEmpty()) {
             builder.addField("Spezialeinheiten", specialUnits, false);
         }
@@ -147,7 +141,7 @@ public final class InfoListener extends ListenerAdapter {
         return builder.build();
     }
 
-    private ReplyAction addControlActionRow(ReplyAction action, String memberId) {
+    private ReplyAction addControlActionRow(final ReplyAction action, final String memberId) {
         return action.addActionRow(
                 Button.success("promote:" + memberId, discordBot.getMessageStore().provide("promote-text")),
                 Button.danger("demote:" + memberId, discordBot.getMessageStore().provide("demote-text")),
@@ -158,7 +152,7 @@ public final class InfoListener extends ListenerAdapter {
         );
     }
 
-    private UpdateInteractionAction addControlActionRow(UpdateInteractionAction action, String memberId) {
+    private UpdateInteractionAction addControlActionRow(final UpdateInteractionAction action, final String memberId) {
         return action.setActionRow(
                 Button.success("promote:" + memberId, discordBot.getMessageStore().provide("promote-text")),
                 Button.danger("demote:" + memberId, discordBot.getMessageStore().provide("demote-text")),
@@ -169,22 +163,22 @@ public final class InfoListener extends ListenerAdapter {
         );
     }
 
-    private void performPromote(ButtonClickEvent event, Employee employee) {
-        int currentRankId = employee.getRank().getId();
-        Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
+    private void performPromote(final ButtonClickEvent event, final Employee employee) {
+        final int currentRankId = employee.getRank().getId();
+        final Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
         if (currentRank == discordBot.getInformationGrabber().getHighestRank()) {
             event.reply("Dieser Mitarbeiter hat bereits den höchsten Dienstgrad!").queue();
             return;
         }
 
-        Rank newRank = discordBot.getInformationGrabber().getNextHigherRank(currentRank);
+        final Rank newRank = discordBot.getInformationGrabber().getNextHigherRank(currentRank);
         if (discordBot.getInformationGrabber().countEmployeesWithRank(newRank) >= newRank.getMaxMembers()) {
             event.reply("Der neue Dienstgrad hat bereits die maximale Anzahl an Mitarbeitern erreicht!").queue();
             return;
         }
 
-        int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
-        Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
+        final int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
+        final Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
@@ -194,22 +188,22 @@ public final class InfoListener extends ListenerAdapter {
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
-    private void performDemote(ButtonClickEvent event, Employee employee) {
-        int currentRankId = employee.getRank().getId();
-        Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
+    private void performDemote(final ButtonClickEvent event, final Employee employee) {
+        final int currentRankId = employee.getRank().getId();
+        final Rank currentRank = discordBot.getInformationGrabber().getRankById(currentRankId);
         if (currentRank == discordBot.getInformationGrabber().getLowestRank()) {
             event.reply("Dieser Mitarbeiter hat bereits den niedrigsten Dienstgrad!").queue();
             return;
         }
 
-        Rank newRank = discordBot.getInformationGrabber().getNextLowerRank(currentRank);
+        final Rank newRank = discordBot.getInformationGrabber().getNextLowerRank(currentRank);
         if (discordBot.getInformationGrabber().countEmployeesWithRank(newRank) >= newRank.getMaxMembers()) {
             event.reply("Der neue Dienstgrad hat bereits die maximale Anzahl an Mitarbeitern erreicht!").queue();
             return;
         }
 
-        int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
-        Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
+        final int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(newRank);
+        final Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(employee.getDiscordId()).complete();
         RoleController.removeRole(member, String.valueOf(currentRank.getDiscordId()));
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
@@ -220,7 +214,7 @@ public final class InfoListener extends ListenerAdapter {
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
-    private void performWarn(ButtonClickEvent event, Employee employee) {
+    private void performWarn(final ButtonClickEvent event, final Employee employee) {
         employee.setWarnings(employee.getWarnings() + 1);
         RoleController.grantRole(Objects.requireNonNull(
                 discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete()),
@@ -229,8 +223,8 @@ public final class InfoListener extends ListenerAdapter {
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
-    private void showAddEducationSelection(ButtonClickEvent event, Employee employee) {
-        SelectionMenu.Builder menu = SelectionMenu.create(String.format("education-selection:%s", employee.getDiscordId()));
+    private void showAddEducationSelection(final ButtonClickEvent event, final Employee employee) {
+        final SelectionMenu.Builder menu = SelectionMenu.create(String.format("education-selection:%s", employee.getDiscordId()));
 
         menu.addOptions(discordBot.getInformationGrabber().getEducations().stream().map(education -> SelectOption.of(
                 education.getName(),
@@ -249,8 +243,8 @@ public final class InfoListener extends ListenerAdapter {
         event.deferEdit().setActionRow(menu.build()).queue();
     }
 
-    private void showAddSpecialUnitSelection(ButtonClickEvent event, Employee employee) {
-        SelectionMenu.Builder menu = SelectionMenu.create(String.format("special-unit-selection:%s", employee.getDiscordId()));
+    private void showAddSpecialUnitSelection(final ButtonClickEvent event, final Employee employee) {
+        final SelectionMenu.Builder menu = SelectionMenu.create(String.format("special-unit-selection:%s", employee.getDiscordId()));
         menu.addOptions(discordBot.getInformationGrabber().getSpecialUnits().stream().map(specialUnit -> SelectOption.of(
                 specialUnit.getName(),
                 specialUnit.getId().toString()
@@ -267,42 +261,42 @@ public final class InfoListener extends ListenerAdapter {
         event.deferEdit().setActionRow(menu.build()).queue();
     }
 
-    private void performChangeEducations(SelectionMenuEvent event, Employee employee, List<String> educationIds) {
+    private void performChangeEducations(final SelectionMenuEvent event, final Employee employee, final List<String> educationIds) {
         employee.getEducationList().clear();
         educationIds.stream().map(educationId -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(educationId)))
                 .forEach(employee.getEducationList()::add);
         discordBot.getInformationGrabber().saveEmployeeEducations(employee);
     }
 
-    private void performChangeSpecialUnits(SelectionMenuEvent event, Employee employee, List<String> specialUnitIds) {
+    private void performChangeSpecialUnits(final SelectionMenuEvent event, final Employee employee, final List<String> specialUnitIds) {
         employee.getSpecialUnitList().clear();
         specialUnitIds.stream().map(specialUnitId -> discordBot.getInformationGrabber().getSpecialUnitById(Integer.parseInt(specialUnitId)))
                 .forEach(employee.getSpecialUnitList()::add);
         discordBot.getInformationGrabber().saveEmployeeSpecialUnits(employee);
     }
 
-    private String formatServiceNumber(int serviceNumber) {
+    private String formatServiceNumber(final int serviceNumber) {
         return String.format("%02d", serviceNumber);
     }
 
-    private String convertEducationsToString(List<Education> educations) {
-        StringBuilder educationsAsString = new StringBuilder();
+    private String convertEducationsToString(final List<Education> educations) {
+        final StringBuilder educationsAsString = new StringBuilder();
         educations.forEach(education -> educationsAsString.append(education.getName()).append("\n"));
         return educationsAsString.toString();
     }
 
-    private String convertSpecialUnitsToString(List<SpecialUnit> specialUnits) {
-        StringBuilder educationsAsString = new StringBuilder();
+    private String convertSpecialUnitsToString(final List<SpecialUnit> specialUnits) {
+        final StringBuilder educationsAsString = new StringBuilder();
         specialUnits.forEach(specialUnit -> educationsAsString.append(specialUnit.getName()).append("\n"));
         return educationsAsString.toString();
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
+    private boolean shouldHandleEvent(final GenericInteractionCreateEvent event) {
         return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(adminCommandsChannelId);
     }
 
-    public static InfoListener forBot(DiscordBot discordBot) {
+    public static InfoListener forBot(final DiscordBot discordBot) {
         return new InfoListener(discordBot);
     }
 }

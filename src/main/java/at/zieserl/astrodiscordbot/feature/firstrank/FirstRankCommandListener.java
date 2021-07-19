@@ -24,7 +24,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
     private final List<Education> firstRankEducations;
     private final Rank startingRank;
 
-    private FirstRankCommandListener(DiscordBot discordBot) {
+    private FirstRankCommandListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.firstRankCommandName = discordBot.getBotConfig().retrieveValue("first-rank-command-name");
         this.firstRankCommandRoleIds = Arrays.asList(retrieveFirstRankCommandRoles(discordBot));
@@ -34,7 +34,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
     }
 
     @Override
-    public void onSlashCommand(@NotNull SlashCommandEvent event) {
+    public void onSlashCommand(@NotNull final SlashCommandEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
@@ -47,40 +47,40 @@ public final class FirstRankCommandListener extends ListenerAdapter {
             event.reply(discordBot.getMessageStore().provide("first-rank-command-already-registered")).queue();
             return;
         }
-        String name = Objects.requireNonNull(event.getOption("name")).getAsString();
+        final String name = Objects.requireNonNull(event.getOption("name")).getAsString();
         grantFirstRankRoles(member);
         event.reply(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
         saveEmployee(member, name);
     }
 
-    private void saveEmployee(Member member, String name) {
-        int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
-        Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
+    private void saveEmployee(final Member member, final String name) {
+        final int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
+        final Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
         employee.updateNickname(member);
         discordBot.getLogController().postNewEmployee(employee);
         discordBot.getInformationGrabber().registerEmployeeData(employee);
         discordBot.getInformationGrabber().saveEmployeeEducations(employee);
     }
 
-    private String[] retrieveFirstRankCommandRoles(DiscordBot discordBot) {
+    private String[] retrieveFirstRankCommandRoles(final DiscordBot discordBot) {
         return Arrays.stream(discordBot.getBotConfig().retrieveValue("first-rank-command-roles").split(",")).map(String::trim).toArray(String[]::new);
     }
 
-    private Education[] retrieveFirstRankEducationIds(DiscordBot discordBot) {
+    private Education[] retrieveFirstRankEducationIds(final DiscordBot discordBot) {
         return Arrays.stream(discordBot.getBotConfig().retrieveValue("first-rank-command-educations").split(","))
                 .map(s -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(s))).toArray(Education[]::new);
     }
 
-    private void grantFirstRankRoles(Member member) {
+    private void grantFirstRankRoles(final Member member) {
         firstRankCommandRoleIds.forEach(roleId -> RoleController.grantRole(member, roleId));
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean shouldHandleEvent(GenericInteractionCreateEvent event) {
+    private boolean shouldHandleEvent(final GenericInteractionCreateEvent event) {
         return Objects.requireNonNull(event.getChannel()).getId().equalsIgnoreCase(firstRankCommandChannelId);
     }
 
-    public static FirstRankCommandListener forBot(DiscordBot bot) {
+    public static FirstRankCommandListener forBot(final DiscordBot bot) {
         return new FirstRankCommandListener(bot);
     }
 }

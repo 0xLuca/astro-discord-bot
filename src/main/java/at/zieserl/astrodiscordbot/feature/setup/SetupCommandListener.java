@@ -14,13 +14,13 @@ public final class SetupCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String dienstmeldungenChannelId;
 
-    private SetupCommandListener(DiscordBot discordBot) {
+    private SetupCommandListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.dienstmeldungenChannelId = discordBot.getBotConfig().retrieveValue("dienstmeldung-channel");
     }
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onGuildMessageReceived(@NotNull final GuildMessageReceivedEvent event) {
         if (!discordBot.shouldHandleEvent(event) || !shouldHandleEvent(event)) {
             return;
         }
@@ -48,11 +48,11 @@ public final class SetupCommandListener extends ListenerAdapter {
 
     }
 
-    private boolean shouldHandleEvent(GenericGuildMessageEvent event) {
+    private boolean shouldHandleEvent(final GenericGuildMessageEvent event) {
         return event.getChannel().getId().equals(dienstmeldungenChannelId);
     }
 
-    public static SetupCommandListener forBot(DiscordBot discordBot) {
+    public static SetupCommandListener forBot(final DiscordBot discordBot) {
         return new SetupCommandListener(discordBot);
     }
 }
