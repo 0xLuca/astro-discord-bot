@@ -133,9 +133,14 @@ public final class InfoListener extends ListenerAdapter {
         if (!specialUnits.isEmpty()) {
             builder.addField("Spezialeinheiten", specialUnits, false);
         }
-        Integer warns = employee.getWarnings();
+        final Integer warns = employee.getWarnings();
         if (employee.getWarnings() > 0) {
             builder.addField("Verwarnungen", warns.toString(), false);
+        }
+        final long seconds = employee.getWorktime() / 1000;
+        if (seconds > 0) {
+            final String formattedSessionTime = String.format("%d Stunde(n), %d Minute(n), %d Sekunde(n)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+            builder.addField("Arbeitszeit", formattedSessionTime, false);
         }
 
         builder.setFooter(discordBot.getMessageStore().provide("type"), jda.getSelfUser().getAvatarUrl());
