@@ -184,7 +184,6 @@ public final class InformationGrabber {
                 employee.getWarnings().toString(),
                 employee.getWorktime().toString());
             employee.setId(newId);
-            System.out.println("New ID: " + newId);
         });
     }
 

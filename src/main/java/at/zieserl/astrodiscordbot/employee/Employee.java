@@ -33,7 +33,7 @@ public final class Employee {
     }
 
     public void setId(Integer id) {
-        if (id != -1) {
+        if (this.id != 0) {
             throw new RuntimeException("Cannot set employee id more than once!");
         }
         this.id = id;
