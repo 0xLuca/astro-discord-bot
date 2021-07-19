@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class Employee {
+    private Integer id;
     private Integer serviceNumber;
     private final String discordId;
     private final String name;
@@ -13,8 +14,10 @@ public final class Employee {
     private Integer warnings;
     private Integer worktime;
     private final List<Education> educationList;
+    private final List<SpecialUnit> specialUnitList;
 
-    public Employee(Integer serviceNumber, String discordId, String name, Rank rank, Integer warnings, Integer worktime, Education... educations) {
+    public Employee(Integer id, Integer serviceNumber, String discordId, String name, Rank rank, Integer warnings, Integer worktime, Education[] educations, SpecialUnit[] specialUnits) {
+        this.id = id;
         this.serviceNumber = serviceNumber;
         this.discordId = discordId;
         this.name = name;
@@ -22,6 +25,18 @@ public final class Employee {
         this.warnings = warnings;
         this.worktime = worktime;
         this.educationList = Arrays.asList(educations);
+        this.specialUnitList = Arrays.asList(specialUnits);
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        if (id != -1) {
+            throw new RuntimeException("Cannot set employee id more than once!");
+        }
+        this.id = id;
     }
 
     public Integer getServiceNumber() {
@@ -66,6 +81,10 @@ public final class Employee {
 
     public List<Education> getEducationList() {
         return educationList;
+    }
+
+    public List<SpecialUnit> getSpecialUnitList() {
+        return specialUnitList;
     }
 
     public void updateNickname(Member member) {

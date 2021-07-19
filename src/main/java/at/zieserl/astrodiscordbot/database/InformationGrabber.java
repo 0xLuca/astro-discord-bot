@@ -3,6 +3,7 @@ package at.zieserl.astrodiscordbot.database;
 import at.zieserl.astrodiscordbot.employee.Education;
 import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
+import at.zieserl.astrodiscordbot.employee.SpecialUnit;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 
@@ -16,8 +17,10 @@ import java.util.concurrent.Executors;
 public final class InformationGrabber {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final MysqlConnection connection;
+    private final Map<Long, Employee> employeeCache = new HashMap<>();
     private final Map<Integer, Rank> ranks = new HashMap<>();
     private final Map<Integer, Education> educations = new HashMap<>();
+    private final Map<Integer, SpecialUnit> specialUnits = new HashMap<>();
 
     private InformationGrabber(MysqlConnection connection) {
         this.connection = connection;
@@ -61,6 +64,24 @@ public final class InformationGrabber {
                 e.printStackTrace();
             }
         });
+
+        connection.executeQuery("SELECT id, discord_id, name FROM special_unit").ifPresent(specialUnitsResultSet -> {
+            specialUnits.clear();
+            try {
+                while (specialUnitsResultSet.next()) {
+                    int specialUnitId = specialUnitsResultSet.getInt("id");
+                    specialUnits.put(specialUnitId,
+                            new SpecialUnit(
+                                    specialUnitId,
+                                    specialUnitsResultSet.getLong("discord_id"),
+                                    specialUnitsResultSet.getString("name")
+                            )
+                    );
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public Optional<Rank> getRankForRole(Role role) {
@@ -89,6 +110,10 @@ public final class InformationGrabber {
 
     public Education getEducationById(int educationId) {
         return educations.get(educationId);
+    }
+
+    public SpecialUnit getSpecialUnitById(int specialUnitId) {
+        return specialUnits.get(specialUnitId);
     }
 
     public int countEmployeesWithRank(Rank rank) {
@@ -150,13 +175,17 @@ public final class InformationGrabber {
     }
 
     public void registerEmployeeData(Employee employee) {
-        executor.submit(() -> connection.executeQuery("INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?)",
+        executor.submit(() -> {
+            int newId = connection.executeInsertWithReturnNewID("id", "INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?)",
                 employee.getServiceNumber().toString(),
                 employee.getName(),
                 employee.getDiscordId(),
                 employee.getRank().getId().toString(),
                 employee.getWarnings().toString(),
-                employee.getWorktime().toString()));
+                employee.getWorktime().toString());
+            employee.setId(newId);
+            System.out.println("New ID: " + newId);
+        });
     }
 
     public void saveEmployeeData(Employee employee) {
@@ -170,10 +199,20 @@ public final class InformationGrabber {
 
     public void saveEmployeeEducations(Employee employee) {
         executor.execute(() -> {
-            connection.executeQuery("DELETE FROM employee_education WHERE service_number = ?", employee.getServiceNumber().toString());
+            connection.executeQuery("DELETE FROM employee_education WHERE employee_id = ?", employee.getId().toString());
             employee.getEducationList().forEach(education -> connection.executeQuery("INSERT INTO employee_education VALUES(?, ?)",
-                    employee.getServiceNumber().toString(),
+                    employee.getId().toString(),
                     education.getId().toString()
+            ));
+        });
+    }
+
+    public void saveEmployeeSpecialUnits(Employee employee) {
+        executor.execute(() -> {
+            connection.executeQuery("DELETE FROM employee_special_unit WHERE employee_id = ?", employee.getId().toString());
+            employee.getSpecialUnitList().forEach(specialUnit -> connection.executeQuery("INSERT INTO employee_special_unit VALUES(?, ?)",
+                    employee.getId().toString(),
+                    specialUnit.getId().toString()
             ));
         });
     }
@@ -181,14 +220,15 @@ public final class InformationGrabber {
     public void saveEmployee(Employee employee) {
         saveEmployeeData(employee);
         saveEmployeeEducations(employee);
+        saveEmployeeSpecialUnits(employee);
     }
 
-    public Education[] getEducationsForEmployee(int serviceNumber) {
+    public Education[] getEducationsForEmployee(Integer id) {
         List<Education> educationList = new ArrayList<>();
-        connection.executeQuery("SELECT education_id FROM employee_education WHERE service_number = ?", String.valueOf(serviceNumber)).ifPresent(educationsResultSet -> {
+        connection.executeQuery("SELECT education_id FROM employee_education WHERE employee_id = ?", id.toString()).ifPresent(educationsResultSet -> {
             try {
                 while (educationsResultSet.next()) {
-                    int educationId = educationsResultSet.getInt("education_id");
+                    final int educationId = educationsResultSet.getInt("education_id");
                     educationList.add(getEducationById(educationId));
                 }
             } catch (Exception e) {
@@ -198,21 +238,38 @@ public final class InformationGrabber {
         return educationList.toArray(new Education[0]);
     }
 
+    public SpecialUnit[] getSpecialUnitsForEmployee(Integer id) {
+        List<SpecialUnit> specialUnitList = new ArrayList<>();
+        connection.executeQuery("SELECT special_unit_id FROM employee_special_unit WHERE employee_id = ?", id.toString()).ifPresent(specialUnitsResultSet -> {
+            try {
+                while (specialUnitsResultSet.next()) {
+                    final int specialUnitId = specialUnitsResultSet.getInt("special_unit_id");
+                    specialUnitList.add(getSpecialUnitById(specialUnitId));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return specialUnitList.toArray(new SpecialUnit[0]);
+    }
+
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(String discordId) {
-        Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
+        Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
         return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
             Employee employee;
             try {
                 if (resultSet.next()) {
-                    int serviceNumber = resultSet.getInt("service_number");
+                    int id = resultSet.getInt("id");
                     employee = new Employee(
-                            serviceNumber,
+                            id,
+                            resultSet.getInt("service_number"),
                             discordId,
                             resultSet.getString("name"),
                             getRankById(resultSet.getInt("rank_id")),
                             resultSet.getInt("warnings"),
                             resultSet.getInt("worktime"),
-                            getEducationsForEmployee(serviceNumber)
+                            getEducationsForEmployee(id),
+                            getSpecialUnitsForEmployee(id)
                     );
                 } else {
                     throw new RuntimeException("Employee result set had no values in it!");

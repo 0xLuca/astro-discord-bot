@@ -81,6 +81,9 @@ public final class WorktimeListener extends ListenerAdapter {
         final EmbedBuilder builder = new EmbedBuilder();
         final long sessionStartTime = lastSessions.getOrDefault(member.getUser().getIdLong(), 0L);
         final long sessionTime = System.currentTimeMillis() - sessionStartTime;
+        if (sessionStartTime != 0 && sessionTime != 0) {
+            
+        }
         final long seconds = sessionTime / 1000;
         final String formattedSessionTime =
                 sessionStartTime > 0 ?

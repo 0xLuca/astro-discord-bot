@@ -5,6 +5,7 @@ import at.zieserl.astrodiscordbot.constant.RoleController;
 import at.zieserl.astrodiscordbot.employee.Education;
 import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
+import at.zieserl.astrodiscordbot.employee.SpecialUnit;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
@@ -63,6 +64,10 @@ public final class InfoListener extends ListenerAdapter {
                 String educations = convertEducationsToString(employee.getEducationList());
                 if (!educations.isEmpty()) {
                     builder.addField("Ausbildungen", educations, false);
+                }
+                String specialUnits = convertSpecialUnitsToString(employee.getSpecialUnitList());
+                if (!specialUnits.isEmpty()) {
+                    builder.addField("Spezialeinheiten", specialUnits, false);
                 }
 
                 builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
@@ -154,6 +159,12 @@ public final class InfoListener extends ListenerAdapter {
     private String convertEducationsToString(List<Education> educations) {
         StringBuilder educationsAsString = new StringBuilder();
         educations.forEach(education -> educationsAsString.append(education.getName()).append("\n"));
+        return educationsAsString.toString();
+    }
+
+    private String convertSpecialUnitsToString(List<SpecialUnit> specialUnits) {
+        StringBuilder educationsAsString = new StringBuilder();
+        specialUnits.forEach(specialUnit -> educationsAsString.append(specialUnit.getName()).append("\n"));
         return educationsAsString.toString();
     }
 

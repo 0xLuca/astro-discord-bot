@@ -5,10 +5,10 @@ import at.zieserl.astrodiscordbot.constant.RoleController;
 import at.zieserl.astrodiscordbot.employee.Education;
 import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
+import at.zieserl.astrodiscordbot.employee.SpecialUnit;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
-import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +31,6 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         this.firstRankCommandChannelId = discordBot.getBotConfig().retrieveValue("first-rank-command-channel");
         this.firstRankEducations = Arrays.asList(retrieveFirstRankEducationIds(discordBot));
         this.startingRank = discordBot.getInformationGrabber().getRankById(Integer.parseInt(discordBot.getBotConfig().retrieveValue("first-rank-command-rank")));
-        System.out.println(this.startingRank);
     }
 
     @Override
@@ -56,7 +55,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
 
     private void saveEmployee(Member member, String name) {
         int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
-        Employee employee = new Employee(newServiceNumber, member.getId(), name, startingRank, 0, 0, firstRankEducations.toArray(new Education[0]));
+        Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
         employee.updateNickname(member);
         discordBot.getLogController().postNewEmployee(employee);
         discordBot.getInformationGrabber().registerEmployeeData(employee);

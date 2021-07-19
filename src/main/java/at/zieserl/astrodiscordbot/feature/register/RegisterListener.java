@@ -4,6 +4,7 @@ import at.zieserl.astrodiscordbot.bot.DiscordBot;
 import at.zieserl.astrodiscordbot.employee.Education;
 import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
+import at.zieserl.astrodiscordbot.employee.SpecialUnit;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
@@ -45,7 +46,7 @@ public final class RegisterListener extends ListenerAdapter {
             int serviceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(rank);
             List<Education> educations = new ArrayList<>();
             Arrays.stream(educationIds).forEach(educationId -> educations.add(discordBot.getInformationGrabber().getEducationById(educationId)));
-            Employee employee = new Employee(serviceNumber, member.getId(), name, rank, 0, 0, educations.toArray(new Education[0]));
+            Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0, educations.toArray(new Education[0]), new SpecialUnit[0]);
             discordBot.getInformationGrabber().registerEmployeeData(employee);
             discordBot.getInformationGrabber().saveEmployeeEducations(employee);
             employee.updateNickname(member);

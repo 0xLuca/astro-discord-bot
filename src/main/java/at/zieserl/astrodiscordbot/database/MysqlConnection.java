@@ -106,14 +106,14 @@ public final class MysqlConnection {
         throw new RuntimeException("Can't execute query when no connection is established!");
     }
 
-    public int executeInsertWithReturnNewID(String query, Map<Integer, String> parameters, String idField) {
+    public int executeInsertWithReturnNewID(String idField, String query, String... parameters) {
         if (isConnected()) {
             try {
                 String[] generatedColumns = {idField};
                 PreparedStatement statement = connection.prepareStatement(query, generatedColumns);
-                if (parameters != null && parameters.size() > 0) {
-                    for (Map.Entry<Integer, String> param : parameters.entrySet()) {
-                        statement.setString(param.getKey(), param.getValue());
+                if (parameters.length > 0) {
+                    for (int i = 0; i < parameters.length; i++) {
+                        statement.setString(i + 1, parameters[i]);
                     }
                 }
                 statement.execute();
