@@ -301,13 +301,13 @@ public final class InfoListener extends ListenerAdapter {
 
     private String convertEducationsToString(final List<Education> educations) {
         final StringBuilder educationsAsString = new StringBuilder();
-        educations.forEach(education -> educationsAsString.append(education.getName()).append("\n"));
+        educations.forEach(education -> educationsAsString.append(education.getName()).append('\n'));
         return educationsAsString.toString();
     }
 
     private String convertSpecialUnitsToString(final List<SpecialUnit> specialUnits) {
         final StringBuilder educationsAsString = new StringBuilder();
-        specialUnits.forEach(specialUnit -> educationsAsString.append(specialUnit.getName()).append("\n"));
+        specialUnits.forEach(specialUnit -> educationsAsString.append(specialUnit.getName()).append('\n'));
         return educationsAsString.toString();
     }
 

@@ -266,6 +266,50 @@ public final class InformationGrabber {
         return specialUnitList.toArray(new SpecialUnit[0]);
     }
 
+    public List<String> findEmployeeDiscordIdsWithRank(final Rank rank) {
+        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT discord_id FROM employee WHERE rank_id = ?", rank.getId().toString());
+        final List<String> discordIds = new ArrayList<>();
+        if (optionalEmployeeResult.isPresent()) {
+            final ResultSet employeeResult = optionalEmployeeResult.get();
+            try {
+                while (employeeResult.next()) {
+                    discordIds.add(String.valueOf(employeeResult.getLong("discord_id")));
+                }
+            } catch (final SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return discordIds;
+    }
+
+    public List<Employee> retrieveAllEmployees() {
+        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT * FROM employee");
+        final List<Employee> employees = new ArrayList<>();
+        if (optionalEmployeeResult.isPresent()) {
+            final ResultSet employeeResult = optionalEmployeeResult.get();
+            try {
+                while (employeeResult.next()) {
+                    final int id = employeeResult.getInt("id");
+                    final Employee employee = new Employee(
+                            id,
+                            employeeResult.getInt("service_number"),
+                            String.valueOf(employeeResult.getLong("discord_id")),
+                            employeeResult.getString("name"),
+                            getRankById(employeeResult.getInt("rank_id")),
+                            employeeResult.getInt("warnings"),
+                            employeeResult.getLong("worktime"),
+                            getEducationsForEmployee(id),
+                            getSpecialUnitsForEmployee(id)
+                    );
+                    employees.add(employee);
+                }
+            } catch (final SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return employees;
+    }
+
     public CompletableFuture<Optional<Employee>> findEmployeeByDiscordId(final String discordId) {
         if (employeeCache.containsKey(discordId)) {
             return CompletableFuture.completedFuture(Optional.of(employeeCache.get(discordId)));

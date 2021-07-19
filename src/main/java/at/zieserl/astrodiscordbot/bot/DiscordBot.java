@@ -7,6 +7,7 @@ import at.zieserl.astrodiscordbot.feature.firstrank.FirstRankCommandListener;
 import at.zieserl.astrodiscordbot.feature.clear.ClearListener;
 import at.zieserl.astrodiscordbot.feature.greeter.GreetListener;
 import at.zieserl.astrodiscordbot.feature.info.InfoListener;
+import at.zieserl.astrodiscordbot.feature.memberlist.MemberListCommandListener;
 import at.zieserl.astrodiscordbot.feature.register.RegisterListener;
 import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
 import at.zieserl.astrodiscordbot.feature.terminate.TerminateListener;
@@ -71,6 +72,7 @@ public final class DiscordBot {
 
         logController = LogController.forBot(this);
 
+        jda.addEventListener(MemberListCommandListener.forBot(this));
         jda.addEventListener(GreetListener.forBot(this));
         jda.addEventListener(FirstRankCommandListener.forBot(this));
         jda.addEventListener(WorktimeListener.forBot(this));
@@ -100,6 +102,7 @@ public final class DiscordBot {
         registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("terminate-command-name"), "Mit diesem Befehl können Mitarbeiter gekündigt werden")
                 .addOption(OptionType.USER, "member", "Der Member, der gekündigt werden soll", true)
                 .addOption(OptionType.STRING, "reason", "Der Grund warum der Mitarbeiter gekündigt werden soll", true));
+        registerCommand(activeGuild, new CommandData("memberlist", "Zeigt eine Mitarbeiterliste."));
     }
 
     private void registerCommand(final Guild guild, final CommandData commandData) {
