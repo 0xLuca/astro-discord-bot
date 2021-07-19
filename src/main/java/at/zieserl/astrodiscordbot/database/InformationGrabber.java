@@ -284,6 +284,18 @@ public final class InformationGrabber {
         return findEmployeeByDiscordId(String.valueOf(discordId));
     }
 
+    public List<Rank> getRanks() {
+        return new ArrayList<>(ranks.values());
+    }
+
+    public List<Education> getEducations() {
+        return new ArrayList<>(educations.values());
+    }
+
+    public List<SpecialUnit> getSpecialUnits() {
+        return new ArrayList<>(specialUnits.values());
+    }
+
     public static InformationGrabber forConnection(MysqlConnection connection) {
         return new InformationGrabber(connection);
     }
