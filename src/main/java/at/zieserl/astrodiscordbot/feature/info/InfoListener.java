@@ -262,16 +262,36 @@ public final class InfoListener extends ListenerAdapter {
     }
 
     private void performChangeEducations(final SelectionMenuEvent event, final Employee employee, final List<String> educationIds) {
+        final List<Education> oldEducations = new ArrayList<>(employee.getEducationList());
         employee.getEducationList().clear();
-        educationIds.stream().map(educationId -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(educationId)))
-                .forEach(employee.getEducationList()::add);
+        final List<Education> newEducations = educationIds.stream()
+                .map(educationId -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(educationId)))
+                .collect(Collectors.toList());
+        newEducations.forEach(employee.getEducationList()::add);
+        final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+
+        oldEducations.stream().filter(education -> !newEducations.contains(education)).forEach(education ->
+                RoleController.removeRole(member, education.getDiscordId().toString()));
+        newEducations.stream().filter(education -> !oldEducations.contains(education)).forEach(education ->
+                RoleController.grantRole(member, education.getDiscordId().toString()));
+
         discordBot.getInformationGrabber().saveEmployeeEducations(employee);
     }
 
     private void performChangeSpecialUnits(final SelectionMenuEvent event, final Employee employee, final List<String> specialUnitIds) {
+        final List<SpecialUnit> oldSpecialUnits = new ArrayList<>(employee.getSpecialUnitList());
         employee.getSpecialUnitList().clear();
-        specialUnitIds.stream().map(specialUnitId -> discordBot.getInformationGrabber().getSpecialUnitById(Integer.parseInt(specialUnitId)))
-                .forEach(employee.getSpecialUnitList()::add);
+        final List<SpecialUnit> newSpecialUnits = specialUnitIds.stream()
+                .map(specialUnitId -> discordBot.getInformationGrabber().getSpecialUnitById(Integer.parseInt(specialUnitId)))
+                .collect(Collectors.toList());
+        newSpecialUnits.forEach(employee.getSpecialUnitList()::add);
+        final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+
+        oldSpecialUnits.stream().filter(specialUnit -> !newSpecialUnits.contains(specialUnit)).forEach(specialUnit ->
+                RoleController.removeRole(member, specialUnit.getDiscordId().toString()));
+        newSpecialUnits.stream().filter(specialUnit -> !oldSpecialUnits.contains(specialUnit)).forEach(specialUnit ->
+                RoleController.grantRole(member, specialUnit.getDiscordId().toString()));
+
         discordBot.getInformationGrabber().saveEmployeeSpecialUnits(employee);
     }
 
