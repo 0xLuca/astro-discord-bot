@@ -14,10 +14,12 @@ public final class Employee {
     private Rank rank;
     private Integer warnings;
     private Long worktime;
+    private String phoneNumber;
+    private String birthDate;
     private final List<Education> educationList;
     private final List<SpecialUnit> specialUnitList;
 
-    public Employee(final Integer id, final Integer serviceNumber, final String discordId, final String name, final Rank rank, final Integer warnings, final Long worktime, final Education[] educations, final SpecialUnit[] specialUnits) {
+    public Employee(final Integer id, final Integer serviceNumber, final String discordId, final String name, final Rank rank, final Integer warnings, final Long worktime, String phoneNumber, String birthDate, final Education[] educations, final SpecialUnit[] specialUnits) {
         this.id = id;
         this.serviceNumber = serviceNumber;
         this.discordId = discordId;
@@ -25,6 +27,8 @@ public final class Employee {
         this.rank = rank;
         this.warnings = warnings;
         this.worktime = worktime;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
         this.educationList = new ArrayList<>(Arrays.asList(educations));
         this.specialUnitList = new ArrayList<>(Arrays.asList(specialUnits));
     }
@@ -86,6 +90,22 @@ public final class Employee {
 
     public List<SpecialUnit> getSpecialUnitList() {
         return specialUnitList;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(final String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(final String birthDate) {
+        this.birthDate = birthDate;
     }
 
     public void updateNickname(final Member member) {

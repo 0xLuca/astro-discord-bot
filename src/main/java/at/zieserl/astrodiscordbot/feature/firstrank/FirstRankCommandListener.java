@@ -50,9 +50,11 @@ public final class FirstRankCommandListener extends ListenerAdapter {
             return;
         }
         final String name = Objects.requireNonNull(event.getOption("name")).getAsString();
+        final String phoneNumber = Objects.requireNonNull(event.getOption("phone_number")).getAsString();
+        final String birthDate = Objects.requireNonNull(event.getOption("birth_date")).getAsString();
         grantFirstRankRoles(member);
         event.reply(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
-        saveEmployee(member, name);
+        saveEmployee(member, name, phoneNumber, birthDate);
     }
 
     @Override
@@ -78,12 +80,12 @@ public final class FirstRankCommandListener extends ListenerAdapter {
         }
         grantFirstRankRoles(member);
         event.getChannel().sendMessage(discordBot.getMessageStore().provide("first-rank-command-success")).queue();
-        saveEmployee(member, name);
+        saveEmployee(member, name, "", "");
     }
 
-    private void saveEmployee(final Member member, final String name) {
+    private void saveEmployee(final Member member, final String name, String phoneNumber, String birthDate) {
         final int newServiceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(startingRank);
-        final Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
+        final Employee employee = new Employee(0, newServiceNumber, member.getId(), name, startingRank, 0, 0L, phoneNumber, birthDate, firstRankEducations.toArray(new Education[0]), new SpecialUnit[0]);
         employee.updateNickname(member);
         discordBot.getLogController().postNewEmployee(employee);
         discordBot.getInformationGrabber().registerEmployeeData(employee);

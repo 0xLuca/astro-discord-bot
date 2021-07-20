@@ -40,13 +40,15 @@ public final class RegisterListener extends ListenerAdapter {
 
         event.reply(member.getAsMention() + " wird registriert...").queue(interactionHook -> {
             final String name = Objects.requireNonNull(event.getOption("name")).getAsString();
-            final String educationsAsString = Objects.requireNonNull(event.getOption("educations")).getAsString();
+            final String phoneNumber = Objects.requireNonNull(event.getOption("phone_number")).getAsString();
+            final String birthDate = Objects.requireNonNull(event.getOption("birth_date")).getAsString();
+            /*final String educationsAsString = Objects.requireNonNull(event.getOption("educations")).getAsString();
             final int[] educationIds = Arrays.stream(educationsAsString.split(",")).mapToInt(Integer::parseInt).toArray();
+            final List<Education> educations = new ArrayList<>();
+            Arrays.stream(educationIds).forEach(educationId -> educations.add(discordBot.getInformationGrabber().getEducationById(educationId)));*/
             final Rank rank = findRankByRoles(member);
             final int serviceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(rank);
-            final List<Education> educations = new ArrayList<>();
-            Arrays.stream(educationIds).forEach(educationId -> educations.add(discordBot.getInformationGrabber().getEducationById(educationId)));
-            final Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0L, educations.toArray(new Education[0]), new SpecialUnit[0]);
+            final Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0L, phoneNumber, birthDate, new Education[0], new SpecialUnit[0]);
             discordBot.getInformationGrabber().registerEmployeeData(employee);
             discordBot.getInformationGrabber().saveEmployeeEducations(employee);
             employee.updateNickname(member);

@@ -180,13 +180,16 @@ public final class InformationGrabber {
 
     public void registerEmployeeData(final Employee employee) {
         executor.submit(() -> {
-            final int newId = connection.executeInsertWithReturnNewID("id", "INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?)",
-                employee.getServiceNumber().toString(),
-                employee.getName(),
-                employee.getDiscordId(),
-                employee.getRank().getId().toString(),
-                employee.getWarnings().toString(),
-                employee.getWorktime().toString());
+            final int newId = connection.executeInsertWithReturnNewID("id", "INSERT INTO employee VALUES(0, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    employee.getServiceNumber().toString(),
+                    employee.getName(),
+                    employee.getDiscordId(),
+                    employee.getRank().getId().toString(),
+                    employee.getWarnings().toString(),
+                    employee.getWorktime().toString(),
+                    employee.getPhoneNumber(),
+                    employee.getBirthDate()
+            );
             employee.setId(newId);
         });
     }
@@ -194,10 +197,10 @@ public final class InformationGrabber {
     public void deleteEmployee(final Employee employee) {
         employeeCache.remove(employee.getDiscordId());
         //executor.execute(() -> {
-            final String employeeId = employee.getId().toString();
-            connection.executeQuery("DELETE FROM employee WHERE id = ?", employeeId);
-            connection.executeQuery("DELETE FROM employee_education WHERE employee_id = ?", employeeId);
-            connection.executeQuery("DELETE FROM employee_special_unit WHERE employee_id = ?", employeeId);
+        final String employeeId = employee.getId().toString();
+        connection.executeQuery("DELETE FROM employee WHERE id = ?", employeeId);
+        connection.executeQuery("DELETE FROM employee_education WHERE employee_id = ?", employeeId);
+        connection.executeQuery("DELETE FROM employee_special_unit WHERE employee_id = ?", employeeId);
         //});
     }
 
@@ -207,7 +210,10 @@ public final class InformationGrabber {
                 employee.getRank().getId().toString(),
                 employee.getWarnings().toString(),
                 employee.getWorktime().toString(),
-                employee.getDiscordId()));
+                employee.getPhoneNumber(),
+                employee.getBirthDate(),
+                employee.getDiscordId()
+        ));
     }
 
     public void saveEmployeeEducations(final Employee employee) {
@@ -298,6 +304,8 @@ public final class InformationGrabber {
                             getRankById(employeeResult.getInt("rank_id")),
                             employeeResult.getInt("warnings"),
                             employeeResult.getLong("worktime"),
+                            employeeResult.getString("phone_number"),
+                            employeeResult.getString("birth_date"),
                             getEducationsForEmployee(id),
                             getSpecialUnitsForEmployee(id)
                     );
@@ -314,7 +322,7 @@ public final class InformationGrabber {
         if (employeeCache.containsKey(discordId)) {
             return CompletableFuture.completedFuture(Optional.of(employeeCache.get(discordId)));
         }
-        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime FROM employee WHERE discord_id = ?", discordId);
+        final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime, phone_number, birth_date FROM employee WHERE discord_id = ?", discordId);
         return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
             final Employee employee;
             try {
@@ -328,6 +336,8 @@ public final class InformationGrabber {
                             getRankById(resultSet.getInt("rank_id")),
                             resultSet.getInt("warnings"),
                             resultSet.getLong("worktime"),
+                            resultSet.getString("phone_number"),
+                            resultSet.getString("birth_date"),
                             getEducationsForEmployee(id),
                             getSpecialUnitsForEmployee(id)
                     );
