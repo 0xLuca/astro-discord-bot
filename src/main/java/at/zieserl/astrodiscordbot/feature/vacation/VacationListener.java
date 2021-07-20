@@ -92,8 +92,7 @@ public final class VacationListener extends ListenerAdapter {
             return;
         }
         final Member member = event.getMember();
-        assert member != null : "Unknown member removed a reaction";
-        System.out.println("[" + Date.from(Instant.now()) +  "] " + member.getEffectiveName() + " removed reaction " + event.getReactionEmote() + " from message id " + event.getMessageId());
+        System.out.println("[" + Date.from(Instant.now()) +  "] " + (member != null ? member.getEffectiveName() : (event.getUser() != null ? event.getUser().getName() : event.getUserId())) + " removed reaction " + event.getReactionEmote() + " from message id " + event.getMessageId());
     }
 
     private boolean isMemberAllowedToReact(final Member member) {
