@@ -120,6 +120,15 @@ public final class InfoListener extends ListenerAdapter {
         builder.addField("Dienstnummer", formatServiceNumber(employee.getServiceNumber()), false);
         builder.addField("Name", employee.getName(), false);
         builder.addField("Dienstgrad", employee.getRank().getName(), false);
+
+        final String phoneNumber = employee.getPhoneNumber();
+        if (!phoneNumber.trim().isEmpty()) {
+            builder.addField("Telefonnummer", employee.getPhoneNumber(), false);
+        }
+        final String birthDate = employee.getBirthDate();
+        if (!birthDate.trim().isEmpty()) {
+            builder.addField("Geburtsdatum", birthDate, false);
+        }
         final String educations = convertEducationsToString(employee.getEducationList());
         if (!educations.isEmpty()) {
             builder.addField("Ausbildungen", educations, false);
@@ -137,7 +146,6 @@ public final class InfoListener extends ListenerAdapter {
             final String formattedSessionTime = String.format("%d Stunde(n), %d Minute(n), %d Sekunde(n)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
             builder.addField("Arbeitszeit", formattedSessionTime, false);
         }
-
         builder.setFooter(discordBot.getMessageStore().provide("type"), jda.getSelfUser().getAvatarUrl());
         return builder.build();
     }
