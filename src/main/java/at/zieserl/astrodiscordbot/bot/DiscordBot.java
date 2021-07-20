@@ -22,12 +22,14 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.message.GenericMessageEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import javax.security.auth.login.LoginException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class DiscordBot {
     private final MessageStore messageStore;
@@ -106,8 +108,9 @@ public final class DiscordBot {
     }
 
     private void registerCommand(final Guild guild, final CommandData commandData) {
-        unregisterCommand(guild, commandData.getName());
-        guild.upsertCommand(commandData).complete();
+        if (!guild.retrieveCommands().complete().stream().map(Command::getName).map(String::toLowerCase).map(String::trim).collect(Collectors.toList()).contains(commandData.getName().toLowerCase().trim())) {
+            guild.upsertCommand(commandData).queue();
+        }
     }
 
     private void unregisterCommand(final Guild guild, final String name) {
