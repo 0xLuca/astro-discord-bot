@@ -94,9 +94,8 @@ public final class DiscordBot {
 
         registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("first-rank-command-name"), getMessageStore().provide("first-rank-command-description"))
                 .addOption(OptionType.STRING, "name", "Dein IC Name", true)
-                .addOption(OptionType.STRING, "phone_number", "Deine Telefonnummer", true)
-                .addOption(OptionType.STRING, "birth_date", "Dein Geburtsdatum (Format: 22.03.1998)", true)
-        );
+                .addOption(OptionType.STRING, "phone_number", "Deine Telefonnummer", false)
+                .addOption(OptionType.STRING, "birth_date", "Dein Geburtsdatum (Format: 22.03.1998)", false));
         registerCommand(activeGuild, new CommandData("clear", "Löscht alle Nachrichten aus dem angegebenen Channel."));
         registerCommand(activeGuild, new CommandData("info", "Ruft Informationen eines bestimmten Members ab")
                 .addOption(OptionType.USER, "member", "Der Member, dessen Informationen abgerufen werden sollen", true));
@@ -104,9 +103,8 @@ public final class DiscordBot {
                 .addOption(OptionType.USER, "member", "Der Member, der registriert werden soll", true)
                 .addOption(OptionType.STRING, "name", "Der IC Name der Person", true)
                 .addOption(OptionType.STRING, "phone_number", "Die Telefonnummer der Person", true)
-                .addOption(OptionType.STRING, "birth_date", "Das Geburtsdatum der Person", true)
-                //.addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true)
-        );
+                .addOption(OptionType.STRING, "birth_date", "Das Geburtsdatum der Person", true));
+        //.addOption(OptionType.STRING, "educations", "Die Ausbildungen mit welchen die Person registriert werden soll", true)
 
         registerCommand(activeGuild, new CommandData(getBotConfig().retrieveValue("terminate-command-name"), "Mit diesem Befehl können Mitarbeiter gekündigt werden")
                 .addOption(OptionType.USER, "member", "Der Member, der gekündigt werden soll", true)

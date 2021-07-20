@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -40,8 +41,10 @@ public final class RegisterListener extends ListenerAdapter {
 
         event.reply(member.getAsMention() + " wird registriert...").queue(interactionHook -> {
             final String name = Objects.requireNonNull(event.getOption("name")).getAsString();
-            final String phoneNumber = Objects.requireNonNull(event.getOption("phone_number")).getAsString();
-            final String birthDate = Objects.requireNonNull(event.getOption("birth_date")).getAsString();
+            final OptionMapping phoneNumberOption = event.getOption("phone_number");
+            final String phoneNumber = phoneNumberOption != null ? phoneNumberOption.getAsString() : "";
+            final OptionMapping birthDateOption = event.getOption("birth_date");
+            final String birthDate = birthDateOption != null ? birthDateOption.getAsString() : "";
             /*final String educationsAsString = Objects.requireNonNull(event.getOption("educations")).getAsString();
             final int[] educationIds = Arrays.stream(educationsAsString.split(",")).mapToInt(Integer::parseInt).toArray();
             final List<Education> educations = new ArrayList<>();
