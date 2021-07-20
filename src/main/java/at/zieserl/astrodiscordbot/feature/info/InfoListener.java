@@ -23,7 +23,8 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyAction;
 import net.dv8tion.jda.api.requests.restaction.interactions.UpdateInteractionAction;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
