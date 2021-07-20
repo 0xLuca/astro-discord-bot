@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ClearListener extends ListenerAdapter {
+public final class ClearListener extends ListenerAdapter {
     private final DiscordBot discordBot;
 
     private ClearListener(final DiscordBot discordBot) {
