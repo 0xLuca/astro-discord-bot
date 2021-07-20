@@ -98,7 +98,7 @@ public final class FirstRankCommandListener extends ListenerAdapter {
 
     private Education[] retrieveFirstRankEducationIds(final DiscordBot discordBot) {
         return Arrays.stream(discordBot.getBotConfig().retrieveValue("first-rank-command-educations").split(","))
-                .map(s -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(s))).toArray(Education[]::new);
+                .filter(s -> !s.trim().isEmpty()).map(s -> discordBot.getInformationGrabber().getEducationById(Integer.parseInt(s))).toArray(Education[]::new);
     }
 
     private void grantFirstRankRoles(final Member member) {
