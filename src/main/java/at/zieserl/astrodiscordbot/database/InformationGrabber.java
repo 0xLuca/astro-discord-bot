@@ -205,7 +205,7 @@ public final class InformationGrabber {
     }
 
     public void saveEmployeeData(final Employee employee) {
-        executor.execute(() -> connection.executeQuery("UPDATE employee SET service_number = ?, rank_id = ?, warnings = ?, worktime = ? WHERE discord_id = ?",
+        executor.execute(() -> connection.executeQuery("UPDATE employee SET service_number = ?, rank_id = ?, warnings = ?, worktime = ?, phone_number = ?, birth_date = ? WHERE discord_id = ?",
                 employee.getServiceNumber().toString(),
                 employee.getRank().getId().toString(),
                 employee.getWarnings().toString(),
