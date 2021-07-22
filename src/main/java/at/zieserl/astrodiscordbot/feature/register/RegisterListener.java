@@ -52,13 +52,32 @@ public final class RegisterListener extends ListenerAdapter {
             Arrays.stream(educationIds).forEach(educationId -> educations.add(discordBot.getInformationGrabber().getEducationById(educationId)));*/
                 final Rank rank = findRankByRoles(member);
                 final int serviceNumber = discordBot.getInformationGrabber().findNextFreeServiceNumber(rank);
-                final Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0L, phoneNumber, birthDate, new Education[0], new SpecialUnit[0]);
+                final Employee employee = new Employee(0, serviceNumber, member.getId(), name, rank, 0, 0L, phoneNumber, birthDate, findEducationsByRoles(member).toArray(new Education[0]), findSpecialUnitsByRoles(member).toArray(new SpecialUnit[0]));
                 discordBot.getInformationGrabber().registerEmployeeData(employee);
                 discordBot.getInformationGrabber().saveEmployeeEducations(employee);
+                discordBot.getInformationGrabber().saveEmployeeSpecialUnits(employee);
                 employee.updateNickname(member);
                 interactionHook.editOriginal(member.getAsMention() + " wurde erfolgreich mit Dienstnummer " + formatServiceNumber(employee.getServiceNumber()) + " registriert!").queue();
             }).start();
         });
+    }
+
+    private List<Education> findEducationsByRoles(final Member member) {
+        final List<Education> foundEducations = new ArrayList<>();
+        final List<Education> existingEducations = discordBot.getInformationGrabber().getEducations();
+        member.getRoles().forEach(role ->
+                existingEducations.stream().filter(education -> education.getDiscordId().equals(role.getIdLong()))
+                        .findFirst().ifPresent(foundEducations::add));
+        return foundEducations;
+    }
+
+    private List<SpecialUnit> findSpecialUnitsByRoles(final Member member) {
+        final List<SpecialUnit> foundSpecialUnits = new ArrayList<>();
+        final List<SpecialUnit> existingSpecialUnits = discordBot.getInformationGrabber().getSpecialUnits();
+        member.getRoles().forEach(role ->
+                existingSpecialUnits.stream().filter(specialUnit -> specialUnit.getDiscordId().equals(role.getIdLong()))
+                        .findFirst().ifPresent(foundSpecialUnits::add));
+        return foundSpecialUnits;
     }
 
     private Rank findRankByRoles(final Member member) {

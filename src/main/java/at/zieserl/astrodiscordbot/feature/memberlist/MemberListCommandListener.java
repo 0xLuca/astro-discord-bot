@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -44,22 +45,29 @@ public final class MemberListCommandListener extends ListenerAdapter {
 
                 final List<Employee> employees = discordBot.getInformationGrabber().retrieveAllEmployees();
 
-                final StringBuilder mentions = new StringBuilder();
+                final StringBuilder message = new StringBuilder();
                 discordBot.getInformationGrabber().getRanks().stream().sorted(Comparator.comparingInt(Rank::getId)).forEach(rank -> {
                     final List<Employee> employeesWithRank = employees.stream().filter(employee -> employee.getRank().equals(rank)).collect(Collectors.toList());
                     final String title = String.format("%s (%d/%d)", rank.getName(), employeesWithRank.size(), rank.getMaxMembers());
-                    mentions.append("**").append(title).append("**\n");
+                    message.append("**").append(title).append("**\n");
+
                     employeesWithRank.forEach(employee -> {
                         Member member = discordBot.getActiveGuild().getMemberById(employee.getDiscordId());
                         if (member == null) {
                             member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
                         }
-                        mentions.append(member.getAsMention()).append('\n');
+                        message.append(member.getAsMention());
+                        if (employee.getWorktime() > 0) {
+                            final long seconds = employee.getWorktime() / 1000;
+                            final String formattedSessionTime = String.format(" (Gesamtdienstzeit: %dh, %dm, %ds)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+                            message.append(formattedSessionTime);
+                        }
+                        message.append('\n');
                     });
-                    mentions.append('\n');
+                    message.append('\n');
                 });
 
-                builder.setDescription(mentions.toString());
+                builder.setDescription(message.toString());
                 builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
                 interactionHook.editOriginal("Die Mitarbeiterliste wurde erfolgreich geladen!").setEmbeds(builder.build()).queue();
