@@ -50,7 +50,7 @@ public final class MysqlConnection {
                     if (connection != null && !connection.isClosed()) {
                         return;
                     }
-                    connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?connectTimeout=3000&autoReconnect=true&useSSL=false", user, password);
+                    connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?autoReconnect=true&connectTimeout=3000&useSSL=false", user, password);
                 }
             } catch (final SQLException ex) {
                 ex.printStackTrace();

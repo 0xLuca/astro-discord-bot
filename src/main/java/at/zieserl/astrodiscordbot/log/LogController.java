@@ -48,7 +48,7 @@ public final class LogController {
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    public void postRankChange(final Employee... employees) {
+    public void postUprank(final Employee... employees) {
         if (employees.length == 0) {
             throw new IllegalArgumentException("Need to pass at least one employee to post rank change!");
         }
@@ -63,7 +63,33 @@ public final class LogController {
             final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
             final Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
             assert member != null && role != null : "Could not find member for employee id / role for rank id!";
-            String message = discordBot.getMessageStore().provide("new-rank-log");
+            String message = discordBot.getMessageStore().provide("uprank-log");
+            message = message.replace("%mention%", member.getAsMention());
+            message = message.replace("%role%", role.getAsMention());
+            message = message.replace("%service-number%", employee.getServiceNumber().toString());
+            builder.addField("Neuer Dienstgrad", message, false);
+        });
+
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        logsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postDownrank(final Employee... employees) {
+        if (employees.length == 0) {
+            throw new IllegalArgumentException("Need to pass at least one employee to post rank change!");
+        }
+        final EmbedBuilder builder = new EmbedBuilder();
+
+        builder.setTitle(discordBot.getMessageStore().provide("log-title").replace("%timestamp%", timeStampFormat.format(Date.from(Instant.now()))));
+        builder.setColor(Color.RED);
+
+        builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
+
+        Arrays.stream(employees).forEach(employee -> {
+            final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+            final Role role = discordBot.getActiveGuild().getRoleById(employee.getRank().getDiscordId());
+            assert member != null && role != null : "Could not find member for employee id / role for rank id!";
+            String message = discordBot.getMessageStore().provide("downrank-log");
             message = message.replace("%mention%", member.getAsMention());
             message = message.replace("%role%", role.getAsMention());
             message = message.replace("%service-number%", employee.getServiceNumber().toString());
@@ -92,6 +118,10 @@ public final class LogController {
         builder.addField("Kündigung", discordBot.getMessageStore().provide("self-terminated-text").replace("%mention%", user.getAsMention()), false);
         builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postWarn(final Employee employee, final Member member) {
+
     }
 
     public static LogController forBot(final DiscordBot discordBot) {

@@ -49,7 +49,7 @@ public final class MemberListCommandListener extends ListenerAdapter {
                 final String title = String.format("%s (%d/%d)", rank.getName(), employeesWithRank.size(), rank.getMaxMembers());
                 message.append("**").append(title).append("**\n");
 
-                employeesWithRank.forEach(employee -> {
+                employeesWithRank.stream().sorted(Comparator.comparingInt(Employee::getServiceNumber)).forEach(employee -> {
                     Member member = discordBot.getActiveGuild().getMemberById(employee.getDiscordId());
                     if (member == null) {
                         member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
@@ -59,6 +59,9 @@ public final class MemberListCommandListener extends ListenerAdapter {
                         final long seconds = employee.getWorktime() / 1000;
                         final String formattedSessionTime = String.format(" (Gesamtdienstzeit: %dh, %dm, %ds)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
                         message.append(formattedSessionTime);
+                    }
+                    if (employee.getPhoneNumber().isEmpty() || employee.getBirthDate().isEmpty()) {
+                        message.append(" (**X**)");
                     }
                     message.append('\n');
                 });

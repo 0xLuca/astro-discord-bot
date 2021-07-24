@@ -192,7 +192,7 @@ public final class InfoListener extends ListenerAdapter {
         RoleController.grantRole(member, String.valueOf(newRank.getDiscordId()));
         employee.setRank(newRank);
         employee.setServiceNumber(newServiceNumber);
-        discordBot.getLogController().postRankChange(employee);
+        discordBot.getLogController().postUprank(employee);
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
@@ -218,17 +218,16 @@ public final class InfoListener extends ListenerAdapter {
         employee.setRank(newRank);
         employee.setServiceNumber(newServiceNumber);
         //event.reply(String.format("%s wurde erfolgreich zu %s degradiert. Seine neue Dienstnummer lautet %s.", member.getEffectiveName(), newRank.getName(), newServiceNumberFormatted)).queue();
-        discordBot.getLogController().postRankChange(employee);
+        discordBot.getLogController().postDownrank(employee);
         employee.updateNickname(member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 
     private void performWarn(final ButtonClickEvent event, final Employee employee) {
         employee.setWarnings(employee.getWarnings() + 1);
-        RoleController.grantRole(Objects.requireNonNull(
-                discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete()),
-                discordBot.getBotConfig().retrieveValue("warn-role")
-        );
+        final Member member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
+        RoleController.grantRole(Objects.requireNonNull(member), discordBot.getBotConfig().retrieveValue("warn-role"));
+        discordBot.getLogController().postWarn(employee, member);
         discordBot.getInformationGrabber().saveEmployeeData(employee);
     }
 

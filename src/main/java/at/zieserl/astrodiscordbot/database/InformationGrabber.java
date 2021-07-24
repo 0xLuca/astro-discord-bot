@@ -324,7 +324,7 @@ public final class InformationGrabber {
         }
         final Optional<ResultSet> optionalEmployeeResult = connection.executeQuery("SELECT id, service_number, name, rank_id, warnings, worktime, phone_number, birth_date FROM employee WHERE discord_id = ?", discordId);
         return optionalEmployeeResult.map(resultSet -> CompletableFuture.supplyAsync(() -> {
-            final Employee employee;
+            Employee employee = null;
             try {
                 if (resultSet.next()) {
                     final int id = resultSet.getInt("id");
@@ -342,13 +342,11 @@ public final class InformationGrabber {
                             getSpecialUnitsForEmployee(id)
                     );
                     employeeCache.put(discordId, employee);
-                } else {
-                    throw new RuntimeException("Employee result set had no values in it!");
                 }
             } catch (final SQLException e) {
                 throw new RuntimeException(e);
             }
-            return Optional.of(employee);
+            return Optional.ofNullable(employee);
         }, executor)).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()));
     }
 

@@ -11,6 +11,7 @@ import at.zieserl.astrodiscordbot.feature.memberlist.MemberListCommandListener;
 import at.zieserl.astrodiscordbot.feature.register.RegisterListener;
 import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
 import at.zieserl.astrodiscordbot.feature.terminate.TerminateListener;
+import at.zieserl.astrodiscordbot.feature.update.UpdateCommandListener;
 import at.zieserl.astrodiscordbot.feature.vacation.VacationListener;
 import at.zieserl.astrodiscordbot.feature.worktime.WorktimeListener;
 import at.zieserl.astrodiscordbot.i18n.MessageStore;
@@ -84,6 +85,7 @@ public final class DiscordBot {
         jda.addEventListener(ClearListener.forBot(this));
         jda.addEventListener(RegisterListener.forBot(this));
         jda.addEventListener(TerminateListener.forBot(this));
+        jda.addEventListener(UpdateCommandListener.forBot(this));
 
         registerCommands();
         changeNicknameIfNeeded();
@@ -110,10 +112,15 @@ public final class DiscordBot {
                 .addOption(OptionType.USER, "member", "Der Member, der gekündigt werden soll", true)
                 .addOption(OptionType.STRING, "reason", "Der Grund warum der Mitarbeiter gekündigt werden soll", true));
         registerCommand(activeGuild, new CommandData("memberlist", "Zeigt eine Mitarbeiterliste."));
+        registerCommand(activeGuild, new CommandData("update", "Erneuert deine Telefonnummer und dein Geburtsdatum.")
+                .addOption(OptionType.STRING, "phone_number", "Deine Telefonnummer",true)
+                .addOption(OptionType.STRING, "birth_date", "Dein Geburtsdatum", true));
     }
 
     private void registerCommand(final Guild guild, final CommandData commandData) {
-        //unregisterCommand(guild, commandData.getName());
+        if (commandData.getName().equals("update")) {
+            unregisterCommand(guild, commandData.getName());
+        }
         if (!guild.retrieveCommands().complete().stream().map(Command::getName).map(String::toLowerCase).map(String::trim).collect(Collectors.toList()).contains(commandData.getName().toLowerCase().trim())) {
             guild.upsertCommand(commandData).queue();
         }
