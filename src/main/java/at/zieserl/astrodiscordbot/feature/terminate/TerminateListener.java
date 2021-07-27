@@ -46,7 +46,6 @@ public final class TerminateListener extends ListenerAdapter {
             return;
         }
         final User user = event.getUser();
-        System.out.println(discordBot.getInformationGrabber().findEmployeeByDiscordId(user.getId()));
         discordBot.getInformationGrabber().findEmployeeByDiscordId(user.getId()).thenAccept(optionalEmployee -> optionalEmployee.ifPresent(employee -> {
             if (discordBot.getInformationGrabber().isRegistered(user.getId())) {
                 discordBot.getInformationGrabber().deleteEmployee(employee);
