@@ -85,7 +85,7 @@ public final class InfoListener extends ListenerAdapter {
             final BiConsumer<ButtonClickEvent, Employee> action = buttonActions.get(actionName);
             action.accept(event, employee);
             final Member member = Objects.requireNonNull(event.getGuild()).retrieveMemberById(discordId).complete();
-            if (!(actionName.equals("add-education") || actionName.equals("add-special-unit"))) {
+            if (!event.isAcknowledged()) {
                 event.deferEdit().setEmbeds(buildInformationEmbed(member, event.getJDA(), employee)).queue();
             }
         }));
