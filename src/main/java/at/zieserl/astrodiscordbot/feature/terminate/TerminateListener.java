@@ -37,6 +37,7 @@ public final class TerminateListener extends ListenerAdapter {
             discordBot.getInformationGrabber().deleteEmployee(employee);
             discordBot.getActiveGuild().kick(member).queue();
             discordBot.getLogController().postTermination(member, reason);
+            event.reply("Der Mitarbeiter wurde gekündigt.").queue();
         }));
     }
 
