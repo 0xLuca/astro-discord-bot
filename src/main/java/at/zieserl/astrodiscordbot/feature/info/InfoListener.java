@@ -78,7 +78,7 @@ public final class InfoListener extends ListenerAdapter {
             return;
         }
         final String[] splitComponentId = event.getComponentId().split(":");
-        assert splitComponentId.length == 2 : "Invalid command id!";
+        assert splitComponentId.length == 2 : "Invalid component id!";
         final String actionName = splitComponentId[0];
         final String discordId = splitComponentId[1];
         discordBot.getInformationGrabber().findEmployeeByDiscordId(discordId).thenAccept(optionalEmployee -> optionalEmployee.ifPresent(employee -> {

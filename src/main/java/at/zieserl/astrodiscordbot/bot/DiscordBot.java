@@ -8,6 +8,7 @@ import at.zieserl.astrodiscordbot.feature.clear.ClearListener;
 import at.zieserl.astrodiscordbot.feature.greeter.GreetListener;
 import at.zieserl.astrodiscordbot.feature.info.InfoListener;
 import at.zieserl.astrodiscordbot.feature.memberlist.MemberListCommandListener;
+import at.zieserl.astrodiscordbot.feature.patrol.PatrolListener;
 import at.zieserl.astrodiscordbot.feature.register.RegisterListener;
 import at.zieserl.astrodiscordbot.feature.removerole.RemoveRoleCommandListener;
 import at.zieserl.astrodiscordbot.feature.setup.SetupCommandListener;
@@ -17,6 +18,8 @@ import at.zieserl.astrodiscordbot.feature.vacation.VacationListener;
 import at.zieserl.astrodiscordbot.feature.worktime.WorktimeListener;
 import at.zieserl.astrodiscordbot.i18n.MessageStore;
 import at.zieserl.astrodiscordbot.log.LogController;
+import at.zieserl.astrodiscordbot.patrol.Patrol;
+import at.zieserl.astrodiscordbot.patrol.PatrolController;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
@@ -32,19 +35,21 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import javax.security.auth.login.LoginException;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public final class DiscordBot {
-    private final MessageStore messageStore;
     private final BotConfig botConfig;
+    private final MessageStore messageStore;
     private MysqlConnection databaseConnection;
     private InformationGrabber informationGrabber;
     private LogController logController;
+    private PatrolController patrolController;
     private final String guildId;
     private Guild activeGuild;
 
-    public DiscordBot(final MessageStore messageStore, final BotConfig botConfig, final String guildId) {
-        this.messageStore = messageStore;
+    public DiscordBot(final BotConfig botConfig, final MessageStore messageStore, final String guildId) {
         this.botConfig = botConfig;
+        this.messageStore = messageStore;
         this.guildId = guildId;
     }
 
@@ -61,6 +66,8 @@ public final class DiscordBot {
             return;
         }
 
+        final boolean shouldUsePatrolSystem = Boolean.parseBoolean(botConfig.retrieveValue("use-patrol-system"));
+
         activeGuild = jda.getGuildById(guildId);
 
         databaseConnection = MysqlConnection.establish(
@@ -72,9 +79,16 @@ public final class DiscordBot {
         );
 
         informationGrabber = InformationGrabber.forConnection(databaseConnection);
-        informationGrabber.reloadConstantsCache();
+        informationGrabber.reloadConstantsCache(shouldUsePatrolSystem);
 
         logController = LogController.forBot(this);
+        if (shouldUsePatrolSystem) {
+            patrolController = PatrolController.forBot(this);
+        }
+
+        final int maxPatrolMembers = Integer.parseInt(botConfig.retrieveValue("max-patrol-members"));
+        final int patrolCount = Integer.parseInt(botConfig.retrieveValue("patrol-count"));
+        IntStream.range(0, patrolCount).forEach(ignored -> patrolController.addPatrolAndSetId(new Patrol(maxPatrolMembers)));
 
         jda.addEventListener(MemberListCommandListener.forBot(this));
         jda.addEventListener(GreetListener.forBot(this));
@@ -88,6 +102,9 @@ public final class DiscordBot {
         jda.addEventListener(TerminateListener.forBot(this));
         jda.addEventListener(UpdateCommandListener.forBot(this));
         jda.addEventListener(RemoveRoleCommandListener.forBot(this));
+        if (shouldUsePatrolSystem) {
+            jda.addEventListener(PatrolListener.forBot(this));
+        }
 
         registerCommands();
         changeNicknameIfNeeded();
@@ -159,16 +176,12 @@ public final class DiscordBot {
         return Objects.requireNonNull(event.getGuild()).getId().equals(guildId);
     }
 
-    public MessageStore getMessageStore() {
-        return messageStore;
-    }
-
     public BotConfig getBotConfig() {
         return botConfig;
     }
 
-    public LogController getLogController() {
-        return logController;
+    public MessageStore getMessageStore() {
+        return messageStore;
     }
 
     public MysqlConnection getDatabaseConnection() {
@@ -179,11 +192,19 @@ public final class DiscordBot {
         return informationGrabber;
     }
 
+    public LogController getLogController() {
+        return logController;
+    }
+
+    public PatrolController getPatrolController() {
+        return patrolController;
+    }
+
     public Guild getActiveGuild() {
         return activeGuild;
     }
 
-    public static DiscordBot create(final MessageStore messageStore, final BotConfig botConfig, final String guildId) {
-        return new DiscordBot(messageStore, botConfig, guildId);
+    public static DiscordBot create(final BotConfig botConfig, final MessageStore messageStore, final String guildId) {
+        return new DiscordBot(botConfig, messageStore, guildId);
     }
 }

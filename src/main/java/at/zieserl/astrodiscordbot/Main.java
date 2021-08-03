@@ -32,7 +32,7 @@ public final class Main {
         }
         final BotConfig config = PropertiesBotConfig.loadFromPath(new File("config.properties"), "config.properties");
         final MessageStore messageStore = ResourceBundleMessageStore.create(bundle);
-        final DiscordBot bot = DiscordBot.create(messageStore, config, args[2]);
+        final DiscordBot bot = DiscordBot.create(config, messageStore, args[2]);
         try {
             bot.start(args[0]);
         } catch (final LoginException e) {

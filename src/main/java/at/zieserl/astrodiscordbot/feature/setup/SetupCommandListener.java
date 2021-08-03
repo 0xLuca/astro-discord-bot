@@ -8,15 +8,19 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
+import java.awt.*;
 
 public final class SetupCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String dienstmeldungenChannelId;
+    private final String patrolChannelId;
+    private final String adminCommandsChannelId;
 
     private SetupCommandListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.dienstmeldungenChannelId = discordBot.getBotConfig().retrieveValue("dienstmeldung-channel");
+        this.patrolChannelId = discordBot.getBotConfig().retrieveValue("patrol-channel");
+        this.adminCommandsChannelId = discordBot.getBotConfig().retrieveValue("admin-commands-channel");
     }
 
     @Override
@@ -27,7 +31,11 @@ public final class SetupCommandListener extends ListenerAdapter {
         if (!event.getMessage().getContentRaw().equalsIgnoreCase("!setup")) {
             return;
         }
-        final TextChannel channel = event.getGuild().getTextChannelById(dienstmeldungenChannelId);
+        final TextChannel dienstmeldungenChannel = event.getGuild().getTextChannelById(dienstmeldungenChannelId);
+        final TextChannel patrolChannel = event.getGuild().getTextChannelById(patrolChannelId);
+
+        assert dienstmeldungenChannel != null : "Could not find Dienstmeldungen channel";
+        assert patrolChannel != null : "Could not find Patrol channel";
 
         final EmbedBuilder builder = new EmbedBuilder();
         builder.setTitle(discordBot.getMessageStore().provide("work-info-title"));
@@ -36,20 +44,20 @@ public final class SetupCommandListener extends ListenerAdapter {
         builder.addField(discordBot.getMessageStore().provide("start-work-title"), discordBot.getMessageStore().provide("start-work"), false);
         builder.addField(discordBot.getMessageStore().provide("end-work-title"), discordBot.getMessageStore().provide("end-work"), false);
 
-        String avatarUrl = event.getJDA().getSelfUser().getAvatarUrl();
-        if (avatarUrl == null) {
-            avatarUrl = event.getJDA().getSelfUser().getDefaultAvatarUrl();
-        }
+        final String avatarUrl = event.getJDA().getSelfUser().getEffectiveAvatarUrl();
         builder.setThumbnail(avatarUrl);
         builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
 
-        assert channel != null : "Could not find Dienstmeldungen channel";
-        channel.sendMessageEmbeds(builder.build()).queue(message -> message.addReaction(discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji")).queue());
-
+        dienstmeldungenChannel.sendMessageEmbeds(builder.build()).queue(message -> message.addReaction(discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji")).queue());
+        discordBot.getPatrolController().getPatrolMap().forEach((id, patrol) -> {
+            patrolChannel.sendMessageEmbeds(discordBot.getPatrolController().buildPatrolEmbed(patrol)).queue(message -> {
+                message.editMessageComponents(discordBot.getPatrolController().buildActionRow(patrol)).queue();
+            });
+        });
     }
 
     private boolean shouldHandleEvent(final GenericGuildMessageEvent event) {
-        return event.getChannel().getId().equals(dienstmeldungenChannelId);
+        return event.getChannel().getId().equals(adminCommandsChannelId);
     }
 
     public static SetupCommandListener forBot(final DiscordBot discordBot) {

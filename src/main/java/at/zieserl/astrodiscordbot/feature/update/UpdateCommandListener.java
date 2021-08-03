@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class UpdateCommandListener extends ListenerAdapter {
+public final class UpdateCommandListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final TextChannel botCommandsTextChannel;
 
@@ -31,14 +31,12 @@ public class UpdateCommandListener extends ListenerAdapter {
         assert member != null : "Unknown member used first rank command";
         final String phoneNumber = Objects.requireNonNull(event.getOption("phone_number")).getAsString();
         final String birthDate = Objects.requireNonNull(event.getOption("birth_date")).getAsString();
-        discordBot.getInformationGrabber().findEmployeeByDiscordId(member.getId()).thenAccept(optionalEmployee -> {
-            optionalEmployee.ifPresent(employee -> {
-                employee.setPhoneNumber(phoneNumber);
-                employee.setBirthDate(birthDate);
-                discordBot.getInformationGrabber().saveEmployeeData(employee);
-                event.reply("Deine Daten wurden gespeichert.").queue();
-            });
-        });
+        discordBot.getInformationGrabber().findEmployeeByDiscordId(member.getId()).thenAccept(optionalEmployee -> optionalEmployee.ifPresent(employee -> {
+            employee.setPhoneNumber(phoneNumber);
+            employee.setBirthDate(birthDate);
+            discordBot.getInformationGrabber().saveEmployeeData(employee);
+            event.reply("Deine Daten wurden gespeichert.").queue();
+        }));
     }
 
     private boolean shouldHandleEvent(final GenericInteractionCreateEvent event) {
