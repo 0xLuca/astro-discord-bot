@@ -2,6 +2,7 @@ package at.zieserl.astrodiscordbot.log;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
 import at.zieserl.astrodiscordbot.employee.Employee;
+import at.zieserl.astrodiscordbot.patrol.Patrol;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -20,11 +21,13 @@ public final class LogController {
     private final DiscordBot discordBot;
     private final Role employeeRole;
     private final TextChannel logsChannel;
+    private final TextChannel adminLogsChannel;
 
     private LogController(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.employeeRole = discordBot.getActiveGuild().getRoleById(discordBot.getBotConfig().retrieveValue("employee-role"));
         this.logsChannel = discordBot.getActiveGuild().getTextChannelById(discordBot.getBotConfig().retrieveValue("public-logs-channel"));
+        this.adminLogsChannel = discordBot.getActiveGuild().getTextChannelById(discordBot.getBotConfig().retrieveValue("admin-logs-channel"));
     }
 
     public void postNewEmployee(final Employee employee) {
@@ -44,7 +47,7 @@ public final class LogController {
         message = message.replace("%service-number%", employee.getServiceNumber().toString());
         builder.addField("Neuer Mitarbeiter", message, false);
 
-        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
@@ -70,7 +73,7 @@ public final class LogController {
             builder.addField("Neuer Dienstgrad", message, false);
         });
 
-        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
@@ -96,7 +99,7 @@ public final class LogController {
             builder.addField("Neuer Dienstgrad", message, false);
         });
 
-        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
@@ -106,7 +109,7 @@ public final class LogController {
         builder.setColor(Color.RED);
         builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
         builder.addField("Kündigung", discordBot.getMessageStore().provide("terminated-text").replace("%mention%", member.getAsMention()).replace("%reason%", reason), false);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
@@ -116,8 +119,28 @@ public final class LogController {
         builder.setColor(Color.RED);
         builder.setDescription(discordBot.getMessageStore().provide("log-description").replace("%employee-role%", employeeRole.getAsMention()));
         builder.addField("Kündigung", discordBot.getMessageStore().provide("self-terminated-text").replace("%mention%", user.getAsMention()), false);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
         logsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postPatrolJoin(final Member member, final Patrol patrol) {
+        final EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(discordBot.getMessageStore().provide("join-patrol-log-title"));
+        builder.setColor(Color.GREEN);
+        builder.setDescription(discordBot.getMessageStore().provide("join-patrol-log-text").replace("%mention%", member.getAsMention()).replace("%display-id%", patrol.getDisplayId().toString()));
+        builder.setThumbnail(member.getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
+        adminLogsChannel.sendMessageEmbeds(builder.build()).queue();
+    }
+
+    public void postPatrolLeave(final Member member, final Patrol patrol) {
+        final EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle(discordBot.getMessageStore().provide("leave-patrol-log-title"));
+        builder.setColor(Color.RED);
+        builder.setDescription(discordBot.getMessageStore().provide("leave-patrol-log-text").replace("%mention%", member.getAsMention()).replace("%display-id%", patrol.getDisplayId().toString()));
+        builder.setThumbnail(member.getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getSelfMember().getUser().getEffectiveAvatarUrl());
+        adminLogsChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
     public void postWarn(final Employee employee, final Member member) {

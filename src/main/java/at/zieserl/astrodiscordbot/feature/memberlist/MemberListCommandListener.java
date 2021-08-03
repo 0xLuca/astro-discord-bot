@@ -69,7 +69,7 @@ public final class MemberListCommandListener extends ListenerAdapter {
             });
 
             builder.setDescription(message.toString());
-            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
             interactionHook.editOriginal("Die Mitarbeiterliste wurde erfolgreich geladen!").setEmbeds(builder.build()).queue();
         }).start());
@@ -108,7 +108,7 @@ public final class MemberListCommandListener extends ListenerAdapter {
             });
 
             builder.setDescription(mentions.toString());
-            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
             message.delete().queue();
             event.getChannel().sendMessageEmbeds(builder.build()).queue();

@@ -46,7 +46,7 @@ public final class SetupCommandListener extends ListenerAdapter {
 
         final String avatarUrl = event.getJDA().getSelfUser().getEffectiveAvatarUrl();
         builder.setThumbnail(avatarUrl);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         dienstmeldungenChannel.sendMessageEmbeds(builder.build()).queue(message -> message.addReaction(discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji")).queue());
         discordBot.getPatrolController().getPatrolMap().forEach((id, patrol) -> {

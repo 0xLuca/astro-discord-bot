@@ -146,7 +146,7 @@ public final class InfoListener extends ListenerAdapter {
             final String formattedSessionTime = String.format("%d Stunde(n), %d Minute(n), %d Sekunde(n)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
             builder.addField("Arbeitszeit", formattedSessionTime, false);
         }
-        builder.setFooter(discordBot.getMessageStore().provide("type"), jda.getSelfUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), jda.getSelfUser().getEffectiveAvatarUrl());
         return builder.build();
     }
 

@@ -52,12 +52,8 @@ public final class WorktimeListener extends ListenerAdapter {
         builder.setTitle(discordBot.getMessageStore().provide("now-at-work-title"));
         builder.setColor(Color.GREEN);
         builder.setDescription(discordBot.getMessageStore().provide("now-at-work-message").replace("%mention%", member.getAsMention()));
-        String avatarUrl = member.getUser().getAvatarUrl();
-        if (avatarUrl == null) {
-            avatarUrl = member.getUser().getDefaultAvatarUrl();
-        }
-        builder.setThumbnail(avatarUrl);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setThumbnail(member.getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         assert channel != null : "Could not find logs channel";
         channel.sendMessageEmbeds(builder.build()).queue();
@@ -98,12 +94,8 @@ public final class WorktimeListener extends ListenerAdapter {
         builder.setTitle(discordBot.getMessageStore().provide("no-longer-at-work-title"));
         builder.setColor(Color.RED);
         builder.setDescription(discordBot.getMessageStore().provide("no-longer-at-work-message").replace("%mention%", member.getAsMention()).replace("%time%", formattedSessionTime));
-        String avatarUrl = member.getUser().getAvatarUrl();
-        if (avatarUrl == null) {
-            avatarUrl = member.getUser().getDefaultAvatarUrl();
-        }
-        builder.setThumbnail(avatarUrl);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setThumbnail(member.getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         assert channel != null : "Could not find logs channel";
         channel.sendMessageEmbeds(builder.build()).queue();

@@ -2,6 +2,7 @@ package at.zieserl.astrodiscordbot.feature.patrol;
 
 import at.zieserl.astrodiscordbot.bot.DiscordBot;
 import at.zieserl.astrodiscordbot.employee.Employee;
+import at.zieserl.astrodiscordbot.log.LogController;
 import at.zieserl.astrodiscordbot.patrol.Patrol;
 import at.zieserl.astrodiscordbot.patrol.PatrolStatus;
 import at.zieserl.astrodiscordbot.patrol.PatrolUnit;
@@ -37,10 +38,12 @@ public final class PatrolListener extends ListenerAdapter {
         put("patrol-status-selection", PatrolListener.this::performChangePatrolStatus);
     }};
     private final String patrolChannelId;
+    private final String adminLogsChannelId;
 
     private PatrolListener(final DiscordBot discordBot) {
         this.discordBot = discordBot;
         this.patrolChannelId = discordBot.getBotConfig().retrieveValue("patrol-channel");
+        this.adminLogsChannelId = discordBot.getBotConfig().retrieveValue("admin-logs-channel");
     }
 
     @Override
@@ -90,6 +93,7 @@ public final class PatrolListener extends ListenerAdapter {
             return;
         }
         patrol.addMember(employee);
+        discordBot.getLogController().postPatrolJoin(discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete(), patrol);
     }
 
     private void performLeavePatrol(final ButtonClickEvent event, final Patrol patrol, final Employee employee) {
@@ -98,6 +102,7 @@ public final class PatrolListener extends ListenerAdapter {
             return;
         }
         patrol.removeMember(employee);
+        discordBot.getLogController().postPatrolLeave(discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete(), patrol);
         if (patrol.isEmpty()) {
             patrol.setVehicle(null);
             patrol.setUnit(null);

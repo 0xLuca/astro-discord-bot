@@ -21,7 +21,7 @@ public class Patrol {
         return id;
     }
 
-    public int getDisplayId() {
+    public Integer getDisplayId() {
         return id + 1;
     }
 

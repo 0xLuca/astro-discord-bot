@@ -31,12 +31,8 @@ public final class GreetListener extends ListenerAdapter {
         builder.setColor(Color.GREEN);
 
         builder.setDescription(discordBot.getMessageStore().provide("welcome-message").replace("%mention%", event.getMember().getAsMention()));
-        String avatarUrl = event.getMember().getUser().getAvatarUrl();
-        if (avatarUrl == null) {
-            avatarUrl = event.getMember().getUser().getDefaultAvatarUrl();
-        }
-        builder.setThumbnail(avatarUrl);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setThumbnail(event.getMember().getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         assert channel != null : "Could not find Greet channel";
         channel.sendMessageEmbeds(builder.build()).queue();
@@ -53,12 +49,8 @@ public final class GreetListener extends ListenerAdapter {
         builder.setTitle(discordBot.getMessageStore().provide("leave-title"));
         builder.setColor(Color.RED);
         builder.setDescription(discordBot.getMessageStore().provide("leave-message").replace("%mention%", event.getUser().getAsMention()));
-        String avatarUrl = event.getUser().getAvatarUrl();
-        if (avatarUrl == null) {
-            avatarUrl = event.getUser().getDefaultAvatarUrl();
-        }
-        builder.setThumbnail(avatarUrl);
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setThumbnail(event.getUser().getEffectiveAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         assert channel != null : "Could not find Greet channel";
         channel.sendMessageEmbeds(builder.build()).queue();

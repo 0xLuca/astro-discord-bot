@@ -51,7 +51,7 @@ public final class VacationListener extends ListenerAdapter {
         builder.setTitle(discordBot.getMessageStore().provide("vacation-title").replace("%name%", name));
         builder.setColor(Color.RED);
         builder.setDescription(event.getMessage().getContentRaw());
-        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
         assert channel != null : "Could not find Abmelden channel";
         channel.sendMessageEmbeds(builder.build()).queue(message -> {
