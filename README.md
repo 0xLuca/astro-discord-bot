@@ -24,13 +24,14 @@ Additionally to the points above the bot also saves and provides the following d
 The bot automatically writes logs for the following events:
 - Promotion / demotion of an employee
 - When new employees joins the department
-- When employees get terminated or quit by themselfes
+- When employees get terminated or quit by themselves
+- When employees join/leave patrols
 
 ### Vacation management
 The bot can know about a channel where employees can write vacation requests, and members with specific configurable roles can accept / decline these requests.
 
 ### Patrol system
-The bot also has an patrol-system, where employees can join different patrols and set the patrols vehicle, special force and status code.
+The bot also has a patrol-system, where employees can join different patrols and set the patrols vehicle, special force and status code.
 
 ## Commands
 - /register <mention> <name> [phone number] [birth date]: This command is used to register already existing employees before using the bot into the database.
