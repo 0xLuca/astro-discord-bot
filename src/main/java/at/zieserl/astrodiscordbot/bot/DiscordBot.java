@@ -84,11 +84,10 @@ public final class DiscordBot {
         logController = LogController.forBot(this);
         if (shouldUsePatrolSystem) {
             patrolController = PatrolController.forBot(this);
+            final int maxPatrolMembers = Integer.parseInt(botConfig.retrieveValue("max-patrol-members"));
+            final int patrolCount = Integer.parseInt(botConfig.retrieveValue("patrol-count"));
+            IntStream.range(0, patrolCount).forEach(ignored -> patrolController.addPatrolAndSetId(new Patrol(maxPatrolMembers)));
         }
-
-        final int maxPatrolMembers = Integer.parseInt(botConfig.retrieveValue("max-patrol-members"));
-        final int patrolCount = Integer.parseInt(botConfig.retrieveValue("patrol-count"));
-        IntStream.range(0, patrolCount).forEach(ignored -> patrolController.addPatrolAndSetId(new Patrol(maxPatrolMembers)));
 
         jda.addEventListener(MemberListCommandListener.forBot(this));
         jda.addEventListener(GreetListener.forBot(this));
