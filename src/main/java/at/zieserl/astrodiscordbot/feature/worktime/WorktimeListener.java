@@ -19,6 +19,7 @@ public final class WorktimeListener extends ListenerAdapter {
     private final DiscordBot discordBot;
     private final String reactionEmote;
     private final String outOfServiceRoleId;
+    private final String inServiceRoleId;
     private final String dienstmeldungChannelId;
     private final String adminLogsChannelId;
     private final Map<Long, Long> lastSessions = new HashMap<>();
@@ -27,6 +28,7 @@ public final class WorktimeListener extends ListenerAdapter {
         this.discordBot = discordBot;
         this.reactionEmote = discordBot.getBotConfig().retrieveValue("dienstmeldung-reaction-emoji");
         this.outOfServiceRoleId = discordBot.getBotConfig().retrieveValue("out-of-service-role");
+        this.inServiceRoleId = discordBot.getBotConfig().retrieveValue("in-service-role");
         this.dienstmeldungChannelId = discordBot.getBotConfig().retrieveValue("dienstmeldung-channel");
         this.adminLogsChannelId = discordBot.getBotConfig().retrieveValue("admin-logs-channel");
     }
@@ -45,6 +47,7 @@ public final class WorktimeListener extends ListenerAdapter {
         }
         lastSessions.put(member.getUser().getIdLong(), System.currentTimeMillis());
         RoleController.removeRole(member, outOfServiceRoleId);
+        RoleController.grantRole(member, inServiceRoleId);
 
         final TextChannel channel = event.getGuild().getTextChannelById(adminLogsChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
@@ -72,6 +75,7 @@ public final class WorktimeListener extends ListenerAdapter {
             return;
         }
         RoleController.grantRole(member, outOfServiceRoleId);
+        RoleController.removeRole(member, inServiceRoleId);
 
         final TextChannel channel = event.getGuild().getTextChannelById(adminLogsChannelId);
         final EmbedBuilder builder = new EmbedBuilder();
