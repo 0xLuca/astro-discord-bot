@@ -5,6 +5,7 @@ import at.zieserl.astrodiscordbot.employee.Employee;
 import at.zieserl.astrodiscordbot.employee.Rank;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.guild.GenericGuildMessageEvent;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -36,10 +38,10 @@ public final class MemberListCommandListener extends ListenerAdapter {
             return;
         }
         event.reply("Die Mitarbeiterliste wird geladen...").queue(interactionHook -> new Thread(() -> {
-            final EmbedBuilder builder = new EmbedBuilder();
-
-            builder.setTitle("Mitarbeiterliste ");
-            builder.setColor(Color.RED);
+//            final EmbedBuilder builder = new EmbedBuilder();
+//
+//            builder.setTitle("Mitarbeiterliste ");
+//            builder.setColor(Color.RED);
 
             final List<Employee> employees = discordBot.getInformationGrabber().retrieveAllEmployees();
 
@@ -68,11 +70,42 @@ public final class MemberListCommandListener extends ListenerAdapter {
                 message.append('\n');
             });
 
-            builder.setDescription(message.toString());
-            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
+//            builder.setDescription(message.toString());
+//            builder.setFooter(discordBot.getMessageStore().provide("type"), event.getJDA().getSelfUser().getEffectiveAvatarUrl());
 
-            interactionHook.editOriginal("Die Mitarbeiterliste wurde erfolgreich geladen!").setEmbeds(builder.build()).queue();
+            final List<MessageEmbed> embeds = provideBuildersForMemberList(message.toString()).stream().map(EmbedBuilder::build).collect(Collectors.toList());
+            interactionHook.editOriginal("Die Mitarbeiterliste wurde erfolgreich geladen!").setEmbeds(embeds.get(0)).queue();
+            if (embeds.size() > 1) {
+                for (int i = 1; i < embeds.size(); i++) {
+                    event.getTextChannel().sendMessageEmbeds(embeds.get(i)).queue();
+                }
+            }
         }).start());
+    }
+
+    private List<EmbedBuilder> provideBuildersForMemberList(final String message) {
+        if (message.length() <= 4096) {
+            return new ArrayList<EmbedBuilder>() {{
+                final EmbedBuilder builder = new EmbedBuilder();
+                builder.setTitle("Mitarbeiterliste");
+                builder.setDescription(message.isEmpty() ? "Keine Mitarbeiter gefunden" : message);
+                builder.setColor(Color.RED);
+                builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getJDA().getSelfUser().getEffectiveAvatarUrl());
+                add(builder);
+            }};
+        }
+
+        final String cutMessage = message.substring(0, 4096);
+        final String newMessage = message.substring(4096);
+        final List<EmbedBuilder> builders = new ArrayList<>();
+        final EmbedBuilder builder = new EmbedBuilder();
+        builder.setTitle("Mitarbeiterliste");
+        builder.setDescription(cutMessage);
+        builders.add(builder);
+        builders.addAll(provideBuildersForMemberList(newMessage));
+        builder.setColor(Color.RED);
+        builder.setFooter(discordBot.getMessageStore().provide("type"), discordBot.getActiveGuild().getJDA().getSelfUser().getEffectiveAvatarUrl());
+        return builders;
     }
 
     @Override
