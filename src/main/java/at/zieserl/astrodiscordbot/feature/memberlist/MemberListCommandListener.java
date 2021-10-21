@@ -52,11 +52,7 @@ public final class MemberListCommandListener extends ListenerAdapter {
                 message.append("**").append(title).append("**\n");
 
                 employeesWithRank.stream().sorted(Comparator.comparingInt(Employee::getServiceNumber)).forEach(employee -> {
-                    Member member = discordBot.getActiveGuild().getMemberById(employee.getDiscordId());
-                    if (member == null) {
-                        member = discordBot.getActiveGuild().retrieveMemberById(employee.getDiscordId()).complete();
-                    }
-                    message.append(member.getAsMention());
+                    message.append(String.format("<@!%s>", employee.getDiscordId()));
                     if (employee.getWorktime() > 0) {
                         final long seconds = employee.getWorktime() / 1000;
                         final String formattedSessionTime = String.format(" (Gesamtdienstzeit: %dh, %dm, %ds)", seconds / 3600, (seconds % 3600) / 60, seconds % 60);
